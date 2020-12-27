@@ -2,12 +2,12 @@ package com.example.checktrends.twitter;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -15,12 +15,45 @@ import androidx.fragment.app.DialogFragment;
 import com.example.checktrends.R;
 
 public class WebViewDialogFragment extends DialogFragment {
-    String html;
+    WebView webView;
+
+    private String html;
+
+    /*
+        読み込み中に表示するProgressDialogの表示、非表示を行うスクリプト
+        widgets.jsの読み込みに合わせる必用がある
+     */
+    private final String script =
+                    "<script type=\"text/javascript\">" +
+                        " window.twttr = (function (d,s,id){ " +
+                            " var t, js, fjs = d.getElementsByTagName(s)[0]; " +
+                            " if (d.getElementById(id)) return; " +
+                            " js=d.createElement(s); " +
+                            " js.id=id; " +
+                            " js.src=\"//platform.twitter.com/widgets.js\";" +
+                            " fjs.parentNode.insertBefore(js, fjs); " +
+                            " return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } }); " +
+                        " }(document, \"script\", \"twitter-wjs\")); " +
+
+                        " twttr.ready(function (twttr) { " +
+                            " Android.showProgressDialog(); " +
+                            " twttr.events.bind('loaded',function (event){ " +
+                                " Android.hideProgressDialog(); " +
+                            " }); "+
+                        " }); " +
+
+                        " window.addEventListener('load', function(){ " +
+                            " window.addEventListener('offline', function(){ " +
+                                " Android.networkIsOffline(); " +
+                            " }); " +
+                        " }); "+
+                    "</script>";
 
     WebViewDialogFragment(String html){
         this.html = html;
     }
 
+    private ProgressDialog dialog = null;
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
@@ -31,30 +64,37 @@ public class WebViewDialogFragment extends DialogFragment {
         builder.setPositiveButton("閉じる", null);
         AlertDialog alertDialog = builder.show();
 
-        WebView webView = inputView.findViewById(R.id.webView);
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView = inputView.findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
-
-        webView.setWebViewClient(new WebViewClient() {
-            private ProgressDialog dialog = null;
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                if (dialog == null || !dialog.isShowing()) {
-                    dialog = new ProgressDialog(getActivity());
-                    dialog.setTitle("読み込み中");
-                    dialog.show();
-                }
-            }
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                if (dialog != null) {
-                    dialog.dismiss();
-                    dialog = null;
-                }
-            }
-        });
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.addJavascriptInterface(new WebAppInterface(), "Android");
+        webView.loadDataWithBaseURL(null, html + script, "text/html", "UTF-8", null);
 
         return  alertDialog;
+    }
+
+    public class WebAppInterface {
+        @JavascriptInterface
+        public void showProgressDialog() {
+            if (dialog == null || !dialog.isShowing()) {
+                dialog = new ProgressDialog(getActivity());
+                dialog.setTitle("読み込み中");
+                dialog.show();
+            }
+        }
+
+        @JavascriptInterface
+        public void hideProgressDialog() {
+            if (dialog != null) {
+                dialog.dismiss();
+                dialog = null;
+            }
+        }
+
+        @JavascriptInterface
+        public void networkIsOffline() {
+            hideProgressDialog();
+            Toast.makeText(getActivity(), R.string.error_message_is_cannot_network_connect, Toast.LENGTH_LONG).show();
+        }
     }
 }

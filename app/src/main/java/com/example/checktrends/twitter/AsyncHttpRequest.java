@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -21,7 +20,6 @@ import com.example.checktrends.R;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +27,6 @@ import twitter4j.OEmbed;
 import twitter4j.OEmbedRequest;
 import twitter4j.Query;
 import twitter4j.QueryResult;
-import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.Trend;
 import twitter4j.Trends;
@@ -38,17 +35,17 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 
 public class AsyncHttpRequest{
-    ListView listView;
-    ProgressBar progressBar;
-    Context context;
-    Twitter twitter;
-    Fragment fragment;
-    String title;
+    private Fragment fragment;
+    private Context context;
+    private ListView listView;
+    private ProgressBar progressBar;
+    private Twitter twitter;
+    private Handler handler;
+    private String title;
 
-    private final int WOEID = 23424856;
+    private final int WOEID = 23424856; //日本
+    private final String SEARCH_FILTER = " exclude:retweets min_retweets:50"; //検索結果からリツイートを除外、リツイートが50回以上のツイート
     private final int MAX_PAGE = 5;
-    private final String FILTER = " exclude:retweets min_faves:10";
-
 
     public AsyncHttpRequest(Fragment fragment) {
         this.fragment = fragment;
@@ -59,7 +56,6 @@ public class AsyncHttpRequest{
 
     private class AsyncRunnable implements Runnable {
         List<String> result = new ArrayList<>();
-        Handler handler = new Handler(Looper.getMainLooper());
         @Override
         public void run() {
             try {
@@ -85,8 +81,9 @@ public class AsyncHttpRequest{
         }
     }
 
-    void onPreExecute() {
+    private void onPreExecute() {
         progressBar.setVisibility(android.widget.ProgressBar.VISIBLE);
+        handler = new Handler(Looper.getMainLooper());
     }
 
     void execute(){
@@ -95,7 +92,7 @@ public class AsyncHttpRequest{
         executorService.submit(new AsyncRunnable());
     }
 
-    void onPostExecute(List<String> result) {
+    private void onPostExecute(List<String> result) {
         progressBar.setVisibility(android.widget.ProgressBar.GONE);
 
         if(result.isEmpty()){
@@ -122,7 +119,6 @@ public class AsyncHttpRequest{
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                //String title = ((TextView)view.findViewById(R.id.text_title)).getText().toString();
                 title = result.get(position);
                 openWebViewDialog(title);
                 return true;
@@ -130,21 +126,28 @@ public class AsyncHttpRequest{
         });
     }
 
-    void openWebViewDialog(String title){
-        progressBar.setVisibility(android.widget.ProgressBar.VISIBLE);
-        Handler handler = new Handler(Looper.getMainLooper());
-        new Thread(new Runnable() {
-            Status displayTweet = null;
-            @Override
-            public void run() {
-                try {
-                    if(netWorkCheck(context)) {
+    private void openWebViewDialog(String title){
+        //ネットワークに繋がっていない場合はタイムアウトするまでtwitter.search(query)が続行されるため、事前にネットワークに繋がるか確認する
+        if(netWorkCheck(context)) {
+            new Thread(new Runnable() {
+                Status displayTweet = null;
+                @Override
+                public void run() {
+                    try {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setVisibility(android.widget.ProgressBar.VISIBLE);
+                            }
+                        });
+
                         Query query = new Query();
-                        query.setQuery(title + FILTER);
+                        query.setQuery(title + SEARCH_FILTER);
                         query.resultType(Query.POPULAR);
                         query.setCount(100);
                         query.lang("ja");
 
+                        //人気のツイートを検索
                         QueryResult result;
                         result = twitter.search(query);
                         for (Status tweet : result.getTweets()) {
@@ -153,6 +156,10 @@ public class AsyncHttpRequest{
                             }
                         }
 
+                        /*
+                        人気のツイートが見つからなかった場合に、ツイートをSEARCH_FILTERの条件で検索する
+                        最大でMAX_PAGE * 100件
+                         */
                         if (displayTweet == null) {
                             query.resultType(Query.MIXED);
                             for (int searchPage = 1; searchPage <= MAX_PAGE; searchPage++) {
@@ -168,6 +175,7 @@ public class AsyncHttpRequest{
                             }
                         }
 
+                        //ツイートを埋め込んだダイアログを表示
                         if (displayTweet != null) {
                             OEmbedRequest oEmbedRequest = new OEmbedRequest(displayTweet.getId(), null);
                             oEmbedRequest.setHideMedia(false);
@@ -176,25 +184,27 @@ public class AsyncHttpRequest{
                             WebViewDialogFragment dialog = new WebViewDialogFragment(oEmbed.getHtml());
                             dialog.show(fragment.getActivity().getSupportFragmentManager(), null);
                         }
-                    }
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }finally {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressBar.setVisibility(ProgressBar.GONE);
-                            if(displayTweet == null){
-                                Toast.makeText(context, R.string.error_message_is_cannot_connect, Toast.LENGTH_LONG).show();
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                    } finally {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setVisibility(ProgressBar.GONE);
+                                if (displayTweet == null) {
+                                    Toast.makeText(context, R.string.error_message_is_cannot_connect, Toast.LENGTH_LONG).show();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        }else{
+            Toast.makeText(context, R.string.error_message_is_cannot_network_connect, Toast.LENGTH_LONG).show();
+        }
     }
 
-    public static boolean netWorkCheck(Context context){
+    boolean netWorkCheck(Context context){
         ConnectivityManager cm =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = cm.getActiveNetworkInfo();
         if( info != null ){
