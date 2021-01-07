@@ -65,9 +65,13 @@ public class GoogleTrendsFragment extends Fragment {
                 try{
                     JSONObject json = new JSONObject(jsonStr);
                     JSONObject json2 = json.getJSONObject("default");
+
                     JSONArray prefecturesObject = json2.getJSONArray("trendingSearchesDays");
                     for(int i=0; i<prefecturesObject.length(); ++i) {
-                        System.out.println(prefecturesObject.getJSONObject(i).getString("trendingSearches"));
+                        JSONArray trendingSearches = prefecturesObject.getJSONObject(i).getJSONArray("trendingSearches");
+                        for(int j=0; j<trendingSearches.length(); ++j) {
+                            System.out.println(trendingSearches.getJSONObject(j).getString("title"));
+                        }
                     }
 
                     /*Handler handler = new Handler(Looper.getMainLooper());
