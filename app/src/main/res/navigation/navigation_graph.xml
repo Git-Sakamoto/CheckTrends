@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_topFragment_to_twitterFragment"
             app:destination="@id/twitterFragment" />
+        <action
+            android:id="@+id/action_topFragment_to_googleTrendsFragment"
+            app:destination="@id/googleTrendsFragment" />
     </fragment>
 
     <fragment
@@ -28,5 +31,11 @@
         android:id="@+id/twitterFragment"
         android:name="com.example.checktrends.twitter.TwitterFragment"
         android:label="@string/twitter_title" />
+
+    <fragment
+        android:id="@+id/googleTrendsFragment"
+        android:name="com.example.checktrends.googletrends.GoogleTrendsFragment"
+        android:label="@string/google_trends_title"
+        tools:layout="@layout/fragment_google_trends" />
 
 </navigation>

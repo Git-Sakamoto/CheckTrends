@@ -32,13 +32,13 @@ public class TopFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                switch (position){
-                    case 0:
-                        Navigation.findNavController(view).navigate(R.id.action_topFragment_to_yahooNewsFragment);
-                        break;
-                    case 1:
-                        Navigation.findNavController(view).navigate(R.id.action_topFragment_to_twitterFragment);
-                        break;
+                String text = (String)listView.getItemAtPosition(position);
+                if(text.equals(getString(R.string.yahoo_news_title))){
+                    Navigation.findNavController(view).navigate(R.id.action_topFragment_to_yahooNewsFragment);
+                }else if(text.equals(getString(R.string.twitter_title))){
+                    Navigation.findNavController(view).navigate(R.id.action_topFragment_to_twitterFragment);
+                } else if(text.equals(getString(R.string.google_trends_title))){
+                    Navigation.findNavController(view).navigate(R.id.action_topFragment_to_googleTrendsFragment);
                 }
             }
         });

@@ -3,10 +3,12 @@
 
     <string name="yahoo_news_title">Yahoo!ニュース</string>
     <string name="twitter_title">Twitterトレンド</string>
+    <string name="google_trends_title">Googleトレンド</string>
 
     <string-array name="array_title">
         <item>@string/yahoo_news_title</item>
         <item>@string/twitter_title</item>
+        <item>@string/google_trends_title</item>
     </string-array>
 
     <string name="error_message_is_cannot_connect">情報を取得できませんでした</string>
