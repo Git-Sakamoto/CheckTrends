@@ -1,5 +1,7 @@
 package com.example.checktrends.googletrends;
 
+import android.app.SearchManager;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,16 +14,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.checktrends.R;
-import com.example.checktrends.ResultListAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -44,6 +48,9 @@ public class GoogleTrendsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        LinearLayout linearLayout = view.findViewById(R.id.linearLayout);
+        Handler handler = new Handler(Looper.getMainLooper());
+
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
@@ -64,26 +71,54 @@ public class GoogleTrendsFragment extends Fragment {
 
                 try{
                     JSONObject json = new JSONObject(jsonStr);
-                    JSONObject json2 = json.getJSONObject("default");
+                    JSONObject jsonDefault = json.getJSONObject("default");
 
-                    JSONArray prefecturesObject = json2.getJSONArray("trendingSearchesDays");
-                    for(int i=0; i<prefecturesObject.length(); ++i) {
-                        JSONArray trendingSearches = prefecturesObject.getJSONObject(i).getJSONArray("trendingSearches");
-                        for(int j=0; j<trendingSearches.length(); ++j) {
-                            System.out.println(trendingSearches.getJSONObject(j).getString("title"));
+                    JSONArray jsonTrendingSearchesDays = jsonDefault.getJSONArray("trendingSearchesDays");
+                    for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
+                        result = new ArrayList<>();
+                        String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
+                        //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
+
+                        JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
+                        for(int j=0; j < jsonTrendingSearches.length(); j++) {
+                            result.add(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
+                            //System.out.println(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
                         }
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextView textDate = new TextView(getActivity());
+                                textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
+                                textDate.setTextSize(20);
+                                linearLayout.addView(textDate);
+
+                                int rank = 1;
+                                for(String title : result) {
+                                    View view = LayoutInflater.from(getActivity()).inflate(R.layout.google_trends_result,null);
+
+                                    TextView textRank = view.findViewById(R.id.text_rank);
+                                    textRank.setText(rank + "．");
+
+                                    TextView textTitle = view.findViewById(R.id.text_title);
+                                    textTitle.setText(title);
+
+                                    ImageButton imageButton = view.findViewById(R.id.imageButton);
+                                    imageButton.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                                            intent.putExtra(SearchManager.QUERY,title);
+                                            startActivity(intent);
+                                        }
+                                    });
+
+                                    linearLayout.addView(view);
+                                    rank++;
+                                }
+                            }
+                        });
                     }
-
-                    /*Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            ResultListAdapter resultListAdapter = new ResultListAdapter(getActivity(),result);
-                            ListView listView = view.findViewById(R.id.listView);
-                            listView.setAdapter(resultListAdapter);
-                        }
-                    });*/
-
 
                 }catch(Exception e){
                     Log.e("error",e.getMessage());

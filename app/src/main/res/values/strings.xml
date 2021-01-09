@@ -3,7 +3,7 @@
 
     <string name="yahoo_news_title">Yahoo!ニュース</string>
     <string name="twitter_title">Twitterトレンド</string>
-    <string name="google_trends_title">Googleトレンド</string>
+    <string name="google_trends_title">Googleトレンド　急上昇ワード</string>
 
     <string-array name="array_title">
         <item>@string/yahoo_news_title</item>
