@@ -49,6 +49,7 @@ public class GoogleTrendsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         LinearLayout linearLayout = view.findViewById(R.id.linearLayout);
+
         Handler handler = new Handler(Looper.getMainLooper());
 
         OkHttpClient client = new OkHttpClient();
@@ -76,6 +77,7 @@ public class GoogleTrendsFragment extends Fragment {
                     JSONArray jsonTrendingSearchesDays = jsonDefault.getJSONArray("trendingSearchesDays");
                     for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
                         result = new ArrayList<>();
+
                         String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
 
@@ -91,6 +93,7 @@ public class GoogleTrendsFragment extends Fragment {
                                 TextView textDate = new TextView(getActivity());
                                 textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
                                 textDate.setTextSize(20);
+                                textDate.setPadding(15,0,0,0);
                                 linearLayout.addView(textDate);
 
                                 int rank = 1;
