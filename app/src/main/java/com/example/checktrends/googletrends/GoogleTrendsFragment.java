@@ -36,8 +36,6 @@ import okhttp3.Response;
 
 public class GoogleTrendsFragment extends Fragment {
 
-    List<String> result;
-
     private final String URL = "https://trends.google.com/trends/api/dailytrends?geo=JP";
 
     @Override
@@ -76,7 +74,7 @@ public class GoogleTrendsFragment extends Fragment {
 
                     JSONArray jsonTrendingSearchesDays = jsonDefault.getJSONArray("trendingSearchesDays");
                     for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
-                        result = new ArrayList<>();
+                        List<String> result = new ArrayList<>();
 
                         String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
