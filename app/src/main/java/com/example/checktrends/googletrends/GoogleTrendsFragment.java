@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -104,13 +106,27 @@ public class GoogleTrendsFragment extends Fragment {
                                     TextView textTitle = view.findViewById(R.id.text_title);
                                     textTitle.setText(title);
 
-                                    ImageButton imageButton = view.findViewById(R.id.imageButton);
-                                    imageButton.setOnClickListener(new View.OnClickListener() {
+                                    ImageButton buttonSearch = view.findViewById(R.id.button_search);
+                                    buttonSearch.setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
                                             Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
                                             intent.putExtra(SearchManager.QUERY,title);
                                             startActivity(intent);
+                                        }
+                                    });
+
+                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
+                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
+
+                                    buttonExpansion.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            if (layoutExpansion.getVisibility() == View.VISIBLE) {
+                                                layoutExpansion.setVisibility(View.GONE);
+                                            } else {
+                                                layoutExpansion.setVisibility(View.VISIBLE);
+                                            }
                                         }
                                     });
 
