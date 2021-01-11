@@ -2,6 +2,7 @@ package com.example.checktrends.googletrends;
 
 import android.app.SearchManager;
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,12 +15,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.checktrends.ImageGetTask;
 import com.example.checktrends.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -37,6 +40,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class GoogleTrendsFragment extends Fragment {
+
+    News news;
 
     private final String URL = "https://trends.google.com/trends/api/dailytrends?geo=JP";
 
@@ -72,11 +77,111 @@ public class GoogleTrendsFragment extends Fragment {
 
                 try{
                     JSONObject json = new JSONObject(jsonStr);
-                    JSONObject jsonDefault = json.getJSONObject("default");
+                    //JSONObject jsonDefault = json.getJSONObject("default");
 
-                    JSONArray jsonTrendingSearchesDays = jsonDefault.getJSONArray("trendingSearchesDays");
+                    JSONArray jsonTrendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
                     for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
-                        List<String> result = new ArrayList<>();
+                        Map<String, News> map = new HashMap<>();
+                        String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
+                        //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
+                        JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
+                        for(int j=0; j < jsonTrendingSearches.length(); j++) {
+                            news = null;
+                            System.out.println(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
+                            if(jsonTrendingSearches.getJSONObject(j).isNull("articles") == false) {
+                                JSONArray articles = jsonTrendingSearches.getJSONObject(j).getJSONArray("articles");
+
+                                System.out.println(articles.getJSONObject(0).getString("title"));
+                                System.out.println(articles.getJSONObject(0).getString("timeAgo"));
+                                System.out.println(articles.getJSONObject(0).getString("source"));
+
+                                if (articles.getJSONObject(0).isNull("image") == false) {
+                                    System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"));
+                                    System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("imageUrl"));
+                                    news = new News(
+                                            articles.getJSONObject(0).getString("title"),
+                                            articles.getJSONObject(0).getString("timeAgo"),
+                                            articles.getJSONObject(0).getString("source"),
+                                            articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"),
+                                            articles.getJSONObject(0).getJSONObject("image").getString("imageUrl")
+                                    );
+                                } else {
+                                    System.out.println(articles.getJSONObject(0).getString("url"));
+                                    news = new News(
+                                            articles.getJSONObject(0).getString("title"),
+                                            articles.getJSONObject(0).getString("timeAgo"),
+                                            articles.getJSONObject(0).getString("source"),
+                                            articles.getJSONObject(0).getString("url"),
+                                            null
+                                    );
+                                }
+                            }
+
+                            map.put(
+                                    jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"),
+                                    news
+                            );
+                        }
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextView textDate = new TextView(getActivity());
+                                textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
+                                textDate.setTextSize(20);
+                                textDate.setPadding(15,0,0,0);
+                                linearLayout.addView(textDate);
+
+                                int rank = 1;
+                                for(String title : map.keySet()) {
+                                    View view = LayoutInflater.from(getActivity()).inflate(R.layout.google_trends_result,null);
+
+                                    TextView textRank = view.findViewById(R.id.text_rank);
+                                    textRank.setText(rank + "．");
+
+                                    TextView textTitle = view.findViewById(R.id.text_title);
+                                    textTitle.setText(title);
+
+                                    ImageButton buttonSearch = view.findViewById(R.id.button_search);
+                                    buttonSearch.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                                            intent.putExtra(SearchManager.QUERY,title);
+                                            startActivity(intent);
+                                        }
+                                    });
+
+
+                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
+                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
+                                    buttonExpansion.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            if (layoutExpansion.getVisibility() == View.VISIBLE) {
+                                                layoutExpansion.setVisibility(View.GONE);
+                                            } else {
+                                                layoutExpansion.setVisibility(View.VISIBLE);
+                                            }
+                                        }
+                                    });
+
+                                    news = map.get(title);
+                                    TextView testText = view.findViewById(R.id.textView);
+                                    testText.setText(news.getTitle());
+
+                                    if(news.getImageUrl() != null){
+                                        ImageView imageView = view.findViewById(R.id.imageView);
+                                        new ImageGetTask(imageView).execute(news.getImageUrl());
+                                    }
+
+                                    linearLayout.addView(view);
+                                    rank++;
+                                }
+                            }
+                        });
+
+                        /*List<String> result = new ArrayList<>();
 
                         String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
@@ -116,9 +221,9 @@ public class GoogleTrendsFragment extends Fragment {
                                         }
                                     });
 
-                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
-                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
 
+                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
+                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
                                     buttonExpansion.setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
@@ -134,7 +239,7 @@ public class GoogleTrendsFragment extends Fragment {
                                     rank++;
                                 }
                             }
-                        });
+                        });*/
                     }
 
                 }catch(Exception e){
