@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +83,7 @@ public class GoogleTrendsFragment extends Fragment {
 
                     JSONArray jsonTrendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
                     for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
-                        Map<String, News> map = new HashMap<>();
+                        Map<String, News> map = new LinkedHashMap<>();
                         String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
                         JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
@@ -170,7 +172,7 @@ public class GoogleTrendsFragment extends Fragment {
                                     TextView testText = view.findViewById(R.id.textView);
                                     testText.setText(news.getTitle());
 
-                                    if(news.getImageUrl() != null){
+                                    if(TextUtils.isEmpty(news.getImageUrl()) == false){
                                         ImageView imageView = view.findViewById(R.id.imageView);
                                         new ImageGetTask(imageView).execute(news.getImageUrl());
                                     }
