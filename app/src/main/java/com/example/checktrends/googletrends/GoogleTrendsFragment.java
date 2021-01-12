@@ -2,11 +2,13 @@ package com.example.checktrends.googletrends;
 
 import android.app.SearchManager;
 import android.content.Intent;
-import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
@@ -16,11 +18,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.checktrends.AnimationEndListener;
 import com.example.checktrends.ImageGetTask;
 import com.example.checktrends.R;
 
@@ -41,9 +46,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class GoogleTrendsFragment extends Fragment {
-
-    News news;
+public class GoogleTrendsFragment extends Fragment{
 
     private final String URL = "https://trends.google.com/trends/api/dailytrends?geo=JP";
 
@@ -55,9 +58,6 @@ public class GoogleTrendsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        LinearLayout linearLayout = view.findViewById(R.id.linearLayout);
-
-        Handler handler = new Handler(Looper.getMainLooper());
 
         OkHttpClient client = new OkHttpClient();
 
@@ -74,28 +74,26 @@ public class GoogleTrendsFragment extends Fragment {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                final String jsonStr = response.body().string().replace(")]}',","");
-                Log.d("jsonStr:",jsonStr);
-
                 try{
-                    JSONObject json = new JSONObject(jsonStr);
-                    //JSONObject jsonDefault = json.getJSONObject("default");
+                    LinkedHashMap<String,LinkedHashMap<String,News>> result = new LinkedHashMap<>();
 
+                    final String jsonStr = response.body().string().replace(")]}',","");
+                    JSONObject json = new JSONObject(jsonStr);
                     JSONArray jsonTrendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
+
                     for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
-                        Map<String, News> map = new LinkedHashMap<>();
-                        String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
+                        LinkedHashMap<String, News> map = new LinkedHashMap<>();
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
                         JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
-                        for(int j=0; j < jsonTrendingSearches.length(); j++) {
-                            news = null;
-                            System.out.println(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
-                            if(jsonTrendingSearches.getJSONObject(j).isNull("articles") == false) {
+                        for (int j = 0; j < jsonTrendingSearches.length(); j++) {
+                            News news = null;
+                            //System.out.println(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
+                            if (jsonTrendingSearches.getJSONObject(j).isNull("articles") == false) {
                                 JSONArray articles = jsonTrendingSearches.getJSONObject(j).getJSONArray("articles");
 
-                                System.out.println(articles.getJSONObject(0).getString("title"));
-                                System.out.println(articles.getJSONObject(0).getString("timeAgo"));
-                                System.out.println(articles.getJSONObject(0).getString("source"));
+                                //System.out.println(articles.getJSONObject(0).getString("title"));
+                                //System.out.println(articles.getJSONObject(0).getString("timeAgo"));
+                                //System.out.println(articles.getJSONObject(0).getString("source"));
 
                                 if (articles.getJSONObject(0).isNull("image") == false) {
                                     System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"));
@@ -108,7 +106,7 @@ public class GoogleTrendsFragment extends Fragment {
                                             articles.getJSONObject(0).getJSONObject("image").getString("imageUrl")
                                     );
                                 } else {
-                                    System.out.println(articles.getJSONObject(0).getString("url"));
+                                    //System.out.println(articles.getJSONObject(0).getString("url"));
                                     news = new News(
                                             articles.getJSONObject(0).getString("title"),
                                             articles.getJSONObject(0).getString("timeAgo"),
@@ -124,19 +122,25 @@ public class GoogleTrendsFragment extends Fragment {
                                     news
                             );
                         }
+                        result.put(jsonTrendingSearchesDays.getJSONObject(i).getString("date"),map);
+                    }
 
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            LinearLayout linearLayout = view.findViewById(R.id.linearLayout);
+
+                            for (String date : result.keySet()) {
                                 TextView textDate = new TextView(getActivity());
                                 textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
                                 textDate.setTextSize(20);
-                                textDate.setPadding(15,0,0,0);
                                 linearLayout.addView(textDate);
 
                                 int rank = 1;
-                                for(String title : map.keySet()) {
-                                    View view = LayoutInflater.from(getActivity()).inflate(R.layout.google_trends_result,null);
+                                LinkedHashMap<String, News> titleMap = result.get(date);
+                                for (String title : titleMap.keySet()) {
+                                    View view = LayoutInflater.from(getActivity()).inflate(R.layout.google_trends_result, null);
 
                                     TextView textRank = view.findViewById(R.id.text_rank);
                                     textRank.setText(rank + "．");
@@ -149,100 +153,52 @@ public class GoogleTrendsFragment extends Fragment {
                                         @Override
                                         public void onClick(View view) {
                                             Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                                            intent.putExtra(SearchManager.QUERY,title);
+                                            intent.putExtra(SearchManager.QUERY, title);
                                             startActivity(intent);
                                         }
                                     });
-
 
                                     LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
                                     ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
                                     buttonExpansion.setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
-                                            if (layoutExpansion.getVisibility() == View.VISIBLE) {
-                                                layoutExpansion.setVisibility(View.GONE);
-                                            } else {
+                                            if (layoutExpansion.getVisibility() == View.GONE) {
                                                 layoutExpansion.setVisibility(View.VISIBLE);
+                                            } else {
+                                                layoutExpansion.setVisibility(View.GONE);
                                             }
                                         }
                                     });
 
-                                    news = map.get(title);
+                                    News news = titleMap.get(title);
                                     TextView testText = view.findViewById(R.id.textView);
                                     testText.setText(news.getTitle());
 
-                                    if(TextUtils.isEmpty(news.getImageUrl()) == false){
-                                        ImageView imageView = view.findViewById(R.id.imageView);
+                                    ImageView imageView = view.findViewById(R.id.imageView);
+                                    if (TextUtils.isEmpty(news.getImageUrl()) == false) {
                                         new ImageGetTask(imageView).execute(news.getImageUrl());
+                                    } else {
+                                        imageView.setVisibility(View.GONE);
                                     }
 
+                                    CardView cardView = view.findViewById(R.id.cardView);
+                                    cardView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                                            CustomTabsIntent customTabsIntent = builder.build();
+                                            customTabsIntent.launchUrl(getActivity(), Uri.parse(news.getNewsUrl()));
+                                        }
+                                    });
+
                                     linearLayout.addView(view);
+
                                     rank++;
                                 }
                             }
-                        });
-
-                        /*List<String> result = new ArrayList<>();
-
-                        String date = jsonTrendingSearchesDays.getJSONObject(i).getString("date");
-                        //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
-
-                        JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
-                        for(int j=0; j < jsonTrendingSearches.length(); j++) {
-                            result.add(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
-                            //System.out.println(jsonTrendingSearches.getJSONObject(j).getJSONObject("title").getString("query"));
                         }
-
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextView textDate = new TextView(getActivity());
-                                textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
-                                textDate.setTextSize(20);
-                                textDate.setPadding(15,0,0,0);
-                                linearLayout.addView(textDate);
-
-                                int rank = 1;
-                                for(String title : result) {
-                                    View view = LayoutInflater.from(getActivity()).inflate(R.layout.google_trends_result,null);
-
-                                    TextView textRank = view.findViewById(R.id.text_rank);
-                                    textRank.setText(rank + "．");
-
-                                    TextView textTitle = view.findViewById(R.id.text_title);
-                                    textTitle.setText(title);
-
-                                    ImageButton buttonSearch = view.findViewById(R.id.button_search);
-                                    buttonSearch.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                                            intent.putExtra(SearchManager.QUERY,title);
-                                            startActivity(intent);
-                                        }
-                                    });
-
-
-                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
-                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
-                                    buttonExpansion.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            if (layoutExpansion.getVisibility() == View.VISIBLE) {
-                                                layoutExpansion.setVisibility(View.GONE);
-                                            } else {
-                                                layoutExpansion.setVisibility(View.VISIBLE);
-                                            }
-                                        }
-                                    });
-
-                                    linearLayout.addView(view);
-                                    rank++;
-                                }
-                            }
-                        });*/
-                    }
+                    });
 
                 }catch(Exception e){
                     Log.e("error",e.getMessage());
