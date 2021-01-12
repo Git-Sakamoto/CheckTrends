@@ -1,5 +1,6 @@
 package com.example.checktrends.googletrends;
 
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.net.Uri;
@@ -23,7 +24,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.checktrends.AnimationEndListener;
 import com.example.checktrends.ImageGetTask;
@@ -48,6 +51,8 @@ import okhttp3.Response;
 
 public class GoogleTrendsFragment extends Fragment{
 
+    ProgressDialog dialog;
+
     private final String URL = "https://trends.google.com/trends/api/dailytrends?geo=JP";
 
     @Override
@@ -66,22 +71,36 @@ public class GoogleTrendsFragment extends Fragment{
                 .get()
                 .build();
 
+        dialog = new ProgressDialog(getActivity());
+        dialog.setTitle("読み込み中");
+        dialog.show();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.e("onFailure",e.getMessage());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dialog != null) {
+                            dialog.dismiss();
+                        }
+                        Toast.makeText(getActivity(),R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
+                    }
+                });
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                try{
-                    LinkedHashMap<String,LinkedHashMap<String,News>> result = new LinkedHashMap<>();
+                try {
+                    LinkedHashMap<String, LinkedHashMap<String, News>> result = new LinkedHashMap<>();
 
-                    final String jsonStr = response.body().string().replace(")]}',","");
+                    final String jsonStr = response.body().string().replace(")]}',", "");
                     JSONObject json = new JSONObject(jsonStr);
                     JSONArray jsonTrendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
 
-                    for(int i=0; i < jsonTrendingSearchesDays.length(); i++) {
+                    for (int i = 0; i < jsonTrendingSearchesDays.length(); i++) {
                         LinkedHashMap<String, News> map = new LinkedHashMap<>();
                         //System.out.println(jsonTrendingSearchesDays.getJSONObject(i).getString("date"));
                         JSONArray jsonTrendingSearches = jsonTrendingSearchesDays.getJSONObject(i).getJSONArray("trendingSearches");
@@ -96,15 +115,15 @@ public class GoogleTrendsFragment extends Fragment{
                                 //System.out.println(articles.getJSONObject(0).getString("source"));
 
                                 if (articles.getJSONObject(0).isNull("image") == false) {
-                                    System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"));
-                                    System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("imageUrl"));
+                                    //System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"));
+                                    //System.out.println(articles.getJSONObject(0).getJSONObject("image").getString("imageUrl"));
                                     news = new News(
                                             articles.getJSONObject(0).getString("title"),
                                             articles.getJSONObject(0).getString("timeAgo"),
                                             articles.getJSONObject(0).getString("source"),
                                             articles.getJSONObject(0).getJSONObject("image").getString("newsUrl"),
                                             articles.getJSONObject(0).getJSONObject("image").getString("imageUrl")
-                                    );
+                                        );
                                 } else {
                                     //System.out.println(articles.getJSONObject(0).getString("url"));
                                     news = new News(
@@ -122,10 +141,9 @@ public class GoogleTrendsFragment extends Fragment{
                                     news
                             );
                         }
-                        result.put(jsonTrendingSearchesDays.getJSONObject(i).getString("date"),map);
+                        result.put(jsonTrendingSearchesDays.getJSONObject(i).getString("date"), map);
                     }
 
-                    Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -200,12 +218,19 @@ public class GoogleTrendsFragment extends Fragment{
                         }
                     });
 
-                }catch(Exception e){
-                    Log.e("error",e.getMessage());
+                } catch (Exception e) {
+                    Log.e("error", e.getMessage());
                 }
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dialog != null) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
             }
 
         });
-
     }
 }
