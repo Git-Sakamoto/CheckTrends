@@ -19,16 +19,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.checktrends.AnimationEndListener;
 import com.example.checktrends.ImageGetTask;
 import com.example.checktrends.R;
 
@@ -37,11 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -182,18 +174,24 @@ public class GoogleTrendsFragment extends Fragment{
                                         @Override
                                         public void onClick(View view) {
                                             if (layoutExpansion.getVisibility() == View.GONE) {
+                                                buttonExpansion.setBackgroundResource(R.drawable.icon_tenkai_up_arrow);
                                                 layoutExpansion.setVisibility(View.VISIBLE);
                                             } else {
+                                                buttonExpansion.setBackgroundResource(R.drawable.icon_tenkai_down_arrow);
                                                 layoutExpansion.setVisibility(View.GONE);
                                             }
                                         }
                                     });
 
                                     News news = titleMap.get(title);
-                                    TextView testText = view.findViewById(R.id.textView);
-                                    testText.setText(news.getTitle());
 
-                                    ImageView imageView = view.findViewById(R.id.imageView);
+                                    TextView textNewsTitle = view.findViewById(R.id.text_news_title);
+                                    textNewsTitle.setText(news.getTitle());
+
+                                    TextView textNewsSource = view.findViewById(R.id.text_news_source);
+                                    textNewsSource.setText(news.getSource() + "　" + news.getTimeAgo().substring(0, 1) + "時間前");
+
+                                    ImageView imageView = view.findViewById(R.id.image_news_photo);
                                     if (TextUtils.isEmpty(news.getImageUrl()) == false) {
                                         new ImageGetTask(imageView).execute(news.getImageUrl());
                                     } else {
