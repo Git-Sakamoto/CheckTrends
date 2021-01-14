@@ -1,13 +1,14 @@
 package com.example.checktrends.googletrends;
 
+//トレンドに対する関連ニュースの情報を格納するクラス
 class News {
-    String title;
-    String timeAgo;
-    String source;
-    String newsUrl;
-    String imageUrl;
+    private String title; //ニュース名
+    private String timeAgo; //何時間前にニュースが配信されたのか
+    private String source; //ニュースの配信サイト名
+    private String newsUrl; //ニュースページのURL
+    private String imageUrl; //ニュースページのサムネイル
 
-    public News(String title,String timeAgo,String source,String newsUrl,String imageUrl){
+    News(String title,String timeAgo,String source,String newsUrl,String imageUrl){
         this.title = title;
         this.timeAgo = timeAgo;
         this.source = source;

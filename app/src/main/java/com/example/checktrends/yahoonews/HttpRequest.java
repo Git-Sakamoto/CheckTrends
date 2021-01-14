@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AsyncHttpRequest {
+public class HttpRequest {
     ListView listView;
     ProgressBar progressBar;
     Context context;
     private final String SITE_URL = "https://news.yahoo.co.jp/ranking/access/news";
 
-    public AsyncHttpRequest(Fragment fragment) {
+    public HttpRequest(Fragment fragment) {
         context = fragment.getActivity();
         listView = fragment.getView().findViewById(R.id.listView);
         progressBar = fragment.getView().findViewById(R.id.progressBar);

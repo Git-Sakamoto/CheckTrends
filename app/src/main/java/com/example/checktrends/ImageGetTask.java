@@ -13,8 +13,8 @@ import java.net.URL;
 public class ImageGetTask extends AsyncTask<String,Void, Bitmap> {
     private ImageView image;
 
-    public ImageGetTask(ImageView _image) {
-        image = _image;
+    public ImageGetTask(ImageView image) {
+        this.image = image;
     }
     @Override
     protected Bitmap doInBackground(String... params) {

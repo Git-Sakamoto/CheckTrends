@@ -34,7 +34,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 
-public class AsyncHttpRequest{
+public class HttpRequest {
     private Fragment fragment;
     private Context context;
     private ListView listView;
@@ -47,7 +47,7 @@ public class AsyncHttpRequest{
     private final String SEARCH_FILTER = " exclude:retweets min_retweets:50"; //検索結果からリツイートを除外、リツイートが50回以上のツイート
     private final int MAX_PAGE = 5;
 
-    public AsyncHttpRequest(Fragment fragment) {
+    public HttpRequest(Fragment fragment) {
         this.fragment = fragment;
         context = fragment.getActivity();
         listView = fragment.getView().findViewById(R.id.listView);

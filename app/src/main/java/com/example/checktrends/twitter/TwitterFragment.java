@@ -22,7 +22,7 @@ public class TwitterFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        new AsyncHttpRequest(this).execute();
+        new HttpRequest(this).execute();
     }
 
 }
