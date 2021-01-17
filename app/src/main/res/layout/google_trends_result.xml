@@ -30,7 +30,8 @@
             android:layout_width="20sp"
             android:layout_height="20sp"
             android:layout_marginEnd="10sp"
-            android:background="@drawable/icon_tenkai_down_arrow" />
+            android:foreground="?android:attr/selectableItemBackground"
+            android:background="@drawable/icon_tenkai_down_arrow"/>
 
         <ImageButton
             android:id="@+id/button_search"
@@ -57,7 +58,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardCornerRadius="10dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="true"
+            android:foreground="?android:attr/selectableItemBackground">
 
             <LinearLayout
                 android:layout_width="match_parent"
