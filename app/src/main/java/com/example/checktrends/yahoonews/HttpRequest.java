@@ -13,10 +13,13 @@ import android.widget.Toast;
 
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
 import com.example.checktrends.News;
 import com.example.checktrends.ResultListAdapter;
+import com.example.checktrends.ResultRecyclerAdapter;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -30,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HttpRequest {
-    ListView listView;
+    RecyclerView listView;
     ProgressBar progressBar;
     Context context;
     private final String SITE_URL = "https://news.yahoo.co.jp/ranking/access/news";
@@ -85,21 +88,22 @@ public class HttpRequest {
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
         }
 
-        ResultListAdapter resultListAdapter = new ResultListAdapter(context,result);
+        listView.setLayoutManager(new LinearLayoutManager(context));
+        ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context,result);
         listView.setAdapter(resultListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                /*Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(result.get(position).getUrl()));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);*/
+                context.startActivity(intent);
 
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                 CustomTabsIntent customTabsIntent = builder.build();
                 customTabsIntent.launchUrl(context, Uri.parse(result.get(position).getUrl()));
             }
-        });
+        });*/
     }
 
 }
