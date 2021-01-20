@@ -7,16 +7,16 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.checktrends.ResultListAdapter;
+import com.example.checktrends.RecyclerViewOnClick;
 import com.example.checktrends.R;
+import com.example.checktrends.ResultRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ import twitter4j.TwitterFactory;
 public class HttpRequest {
     private Fragment fragment;
     private Context context;
-    private ListView listView;
+    private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private Twitter twitter;
     private Handler handler;
@@ -50,7 +50,7 @@ public class HttpRequest {
     public HttpRequest(Fragment fragment) {
         this.fragment = fragment;
         context = fragment.getActivity();
-        listView = fragment.getView().findViewById(R.id.listView);
+        recyclerView = fragment.getView().findViewById(R.id.recyclerView);
         progressBar = fragment.getView().findViewById(R.id.progressBar);
     }
 
@@ -99,34 +99,29 @@ public class HttpRequest {
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
         }
 
-        ResultListAdapter resultListAdapter = new ResultListAdapter(context,result);
-        listView.setAdapter(resultListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+            public void onClick(Object object) {
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-                title = result.get(position);
-                if(title.startsWith("#")){
-                    intent.setData(Uri.parse("https://twitter.com/search?q=%23"+title.substring(1)));
+                if(((String)object).startsWith("#")){
+                    intent.setData(Uri.parse("https://twitter.com/search?q=%23"+((String)object).substring(1)));
                 }else{
-                    intent.setData(Uri.parse("https://twitter.com/search?q="+title));
+                    intent.setData(Uri.parse("https://twitter.com/search?q="+ object));
                 }
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             }
-        });
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                title = result.get(position);
-                openWebViewDialog(title);
-                return true;
+            public void onLongClick(Object object) {
+                openWebViewDialog(((String)object));
             }
         });
+        recyclerView.setAdapter(resultListAdapter);
     }
 
-    private void openWebViewDialog(String title){
+    public void openWebViewDialog(String title){
         //ネットワークに繋がっていない場合はタイムアウトするまでtwitter.search(query)が続行されるため、事前にネットワークに繋がるか確認する
         if(netWorkCheck(context)) {
             new Thread(new Runnable() {

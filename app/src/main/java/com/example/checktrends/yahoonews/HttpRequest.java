@@ -1,13 +1,9 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -18,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
 import com.example.checktrends.News;
-import com.example.checktrends.ResultListAdapter;
+import com.example.checktrends.RecyclerViewOnClick;
 import com.example.checktrends.ResultRecyclerAdapter;
 
 import org.jsoup.Jsoup;
@@ -33,14 +29,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HttpRequest {
-    RecyclerView listView;
+    RecyclerView recyclerView;
     ProgressBar progressBar;
     Context context;
     private final String SITE_URL = "https://news.yahoo.co.jp/ranking/access/news";
 
     public HttpRequest(Fragment fragment) {
         context = fragment.getActivity();
-        listView = fragment.getView().findViewById(R.id.listView);
+        recyclerView = fragment.getView().findViewById(R.id.recyclerView);
         progressBar = fragment.getView().findViewById(R.id.progressBar);
     }
 
@@ -88,22 +84,21 @@ public class HttpRequest {
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
         }
 
-        listView.setLayoutManager(new LinearLayoutManager(context));
-        ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context,result);
-        listView.setAdapter(resultListAdapter);
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(result.get(position).getUrl()));
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-
+            public void onClick(Object object) {
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                 CustomTabsIntent customTabsIntent = builder.build();
-                customTabsIntent.launchUrl(context, Uri.parse(result.get(position).getUrl()));
+                customTabsIntent.launchUrl(context, Uri.parse(((News) object).getUrl()));
             }
-        });*/
+
+            @Override
+            public void onLongClick(Object object) {
+                //未実装
+            }
+        });
+        recyclerView.setAdapter(resultListAdapter);
     }
 
 }
