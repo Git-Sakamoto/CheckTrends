@@ -11,21 +11,15 @@
         android:label="@string/app_name"
         tools:layout="@layout/fragment_top" >
         <action
-            android:id="@+id/action_topFragment_to_yahooNewsFragment"
-            app:destination="@id/yahooNewsFragment" />
-        <action
             android:id="@+id/action_topFragment_to_twitterFragment"
             app:destination="@id/twitterFragment" />
         <action
             android:id="@+id/action_topFragment_to_googleTrendsFragment"
             app:destination="@id/googleTrendsFragment" />
+        <action
+            android:id="@+id/action_topFragment_to_yahooNewsFragment"
+            app:destination="@id/yahooNewsFragment" />
     </fragment>
-
-    <fragment
-        android:id="@+id/yahooNewsFragment"
-        android:name="com.example.checktrends.yahoonews.YahooNewsFragment"
-        android:label="@string/yahoo_news_title"
-        tools:layout="@layout/fragment_yahoo_news" />
 
     <fragment
         android:id="@+id/twitterFragment"
@@ -37,5 +31,9 @@
         android:name="com.example.checktrends.googletrends.GoogleTrendsFragment"
         android:label="@string/google_trends_title"
         tools:layout="@layout/fragment_google_trends" />
+    <fragment
+        android:id="@+id/yahooNewsFragment"
+        android:name="com.example.checktrends.yahoonews.YahooNewsFragment"
+        android:label="@string/yahoo_news_title" />
 
 </navigation>

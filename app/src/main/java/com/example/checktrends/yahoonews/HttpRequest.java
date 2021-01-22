@@ -32,12 +32,14 @@ public class HttpRequest {
     RecyclerView recyclerView;
     ProgressBar progressBar;
     Context context;
-    private final String SITE_URL = "https://news.yahoo.co.jp/ranking/access/news";
+    private String URL;
 
-    public HttpRequest(Fragment fragment) {
+    public HttpRequest(Fragment fragment,String URL) {
         context = fragment.getActivity();
         recyclerView = fragment.getView().findViewById(R.id.recyclerView);
         progressBar = fragment.getView().findViewById(R.id.progressBar);
+
+        this.URL = URL;
     }
 
     private class AsyncRunnable implements Runnable {
@@ -48,7 +50,7 @@ public class HttpRequest {
         @Override
         public void run() {
             try {
-                Document document = Jsoup.connect(SITE_URL).get();
+                Document document = Jsoup.connect(URL).get();
                 Elements elements = document.select("a.newsFeed_item_link");
                 for (Element element : elements) {
                     url = element.attr("href");

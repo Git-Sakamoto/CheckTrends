@@ -5,12 +5,14 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.checktrends.R;
+import com.google.android.material.tabs.TabLayout;
 
 public class YahooNewsFragment extends Fragment {
 
@@ -22,7 +24,12 @@ public class YahooNewsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        new HttpRequest(this).execute();
-    }
+        PagerAdapter pagerAdapter = new PagerAdapter(getActivity().getSupportFragmentManager());
+        ViewPager viewPager = view.findViewById(R.id.viewPager);
+        viewPager.setOffscreenPageLimit(2);
+        viewPager.setAdapter(pagerAdapter);
 
+        TabLayout tabLayout = view.findViewById(R.id.tab_layout);
+        tabLayout.setupWithViewPager(viewPager);
+    }
 }
