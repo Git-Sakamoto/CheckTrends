@@ -1,5 +1,6 @@
 package com.example.checktrends.twitter;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -10,6 +11,7 @@ import android.os.Looper;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -103,14 +105,24 @@ public class HttpRequest {
         ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
             @Override
             public void onClick(Object object) {
+                Uri uri;
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
                 if(((String)object).startsWith("#")){
-                    intent.setData(Uri.parse("https://twitter.com/search?q=%23"+((String)object).substring(1)));
+                    uri = Uri.parse("https://twitter.com/search?q=%23"+((String)object).substring(1));
                 }else{
-                    intent.setData(Uri.parse("https://twitter.com/search?q="+ object));
+                    uri = Uri.parse("https://twitter.com/search?q="+ object);
                 }
+                intent.setData(uri);
+                intent.setPackage("com.twitter.android");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+
+                try {
+                    context.startActivity(intent);
+                }catch (ActivityNotFoundException exception){
+                    CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                    CustomTabsIntent customTabsIntent = builder.build();
+                    customTabsIntent.launchUrl(fragment.getActivity(), uri);
+                }
             }
 
             @Override
