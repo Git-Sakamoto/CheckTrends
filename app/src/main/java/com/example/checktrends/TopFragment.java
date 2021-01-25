@@ -37,8 +37,10 @@ public class TopFragment extends Fragment {
                     Navigation.findNavController(view).navigate(R.id.action_topFragment_to_yahooNewsFragment);
                 }else if(text.equals(getString(R.string.twitter_title))){
                     Navigation.findNavController(view).navigate(R.id.action_topFragment_to_twitterFragment);
-                } else if(text.equals(getString(R.string.google_trends_title))){
+                }else if(text.equals(getString(R.string.google_trends_title))){
                     Navigation.findNavController(view).navigate(R.id.action_topFragment_to_googleTrendsFragment);
+                }else if(text.equals(getString(R.string.book_mark_title))){
+                    Navigation.findNavController(view).navigate(R.id.action_topFragment_to_bookMarkFragment);
                 }
             }
         });

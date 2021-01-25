@@ -4,11 +4,13 @@
     <string name="yahoo_news_title">Yahoo!ニュース</string>
     <string name="twitter_title">Twitterトレンド</string>
     <string name="google_trends_title">Googleトレンド　急上昇ワード</string>
+    <string name="book_mark_title">ブックマーク</string>
 
     <string-array name="array_title">
         <item>@string/yahoo_news_title</item>
         <item>@string/twitter_title</item>
         <item>@string/google_trends_title</item>
+        <item>@string/book_mark_title</item>
     </string-array>
 
     <string name="error_message_is_cannot_connect">情報を取得できませんでした</string>

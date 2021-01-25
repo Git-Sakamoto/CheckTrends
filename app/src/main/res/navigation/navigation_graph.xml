@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_topFragment_to_yahooNewsFragment"
             app:destination="@id/yahooNewsFragment" />
+        <action
+            android:id="@+id/action_topFragment_to_bookMarkFragment"
+            app:destination="@id/bookMarkFragment" />
     </fragment>
 
     <fragment
@@ -35,5 +38,10 @@
         android:id="@+id/yahooNewsFragment"
         android:name="com.example.checktrends.yahoonews.YahooNewsFragment"
         android:label="@string/yahoo_news_title" />
+    <fragment
+        android:id="@+id/bookMarkFragment"
+        android:name="com.example.checktrends.bookmark.BookMarkFragment"
+        android:label="@string/book_mark_title"
+        tools:layout="@layout/fragment_book_mark" />
 
 </navigation>
