@@ -16,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.checktrends.MainActivity;
 import com.example.checktrends.R;
 
 public class BookMarkFragment extends Fragment {
