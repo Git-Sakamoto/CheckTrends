@@ -40,7 +40,7 @@
         android:label="@string/yahoo_news_title" />
     <fragment
         android:id="@+id/bookMarkFragment"
-        android:name="com.example.checktrends.bookmark.BookMarkFragment"
+        android:name="com.example.checktrends.bookmark.BookmarkFragment"
         android:label="@string/book_mark_title"
         tools:layout="@layout/fragment_book_mark" />
 

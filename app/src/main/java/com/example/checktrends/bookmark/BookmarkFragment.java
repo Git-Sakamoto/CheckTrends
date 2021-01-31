@@ -1,5 +1,6 @@
 package com.example.checktrends.bookmark;
 
+import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,6 +9,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +21,10 @@ import android.view.ViewGroup;
 
 import com.example.checktrends.R;
 
-public class BookMarkFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
+
+public class BookmarkFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,6 +40,27 @@ public class BookMarkFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        List<Bookmark> list = new ArrayList<>();
+        DBAdapter dbAdapter = new DBAdapter(getActivity());
+        dbAdapter.openDB();
+        Cursor c = dbAdapter.selectBookmark();
+        if(c.moveToFirst()){
+            do {
+                list.add(new Bookmark(
+                        String.valueOf(c.getInt(0)),
+                        c.getString(1),
+                        c.getString(2),
+                        c.getString(3)
+                ));
+            }while (c.moveToNext());
+        }
+        c.close();
+
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        BookmarkRecyclerAdapter bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(getActivity(),list);
+        recyclerView.setAdapter(bookmarkRecyclerAdapter);
+
     }
 
     @Override
@@ -45,7 +72,7 @@ public class BookMarkFragment extends Fragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_register:
-                System.out.println("test");
+                new UrlInputDialog().show(getActivity().getSupportFragmentManager(),"url");
                 break;
         }
 

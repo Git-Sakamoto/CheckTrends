@@ -5,18 +5,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.text.TextUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DBAdapter {
+class DBAdapter {
     private static final String DB_NAME = "bookmark.db";
     private static final String DB_TABLE = "bookmark";
     private static final int DB_VERSION = 1;
 
     public final static String COL_ID = "_id"; //ID
-    public final static String COL_TITLE = "title"; //ブックマーク　サイト名
+    public final static String COL_TITLE = "title"; //ブックマーク　サイトタイトル
     public final static String COL_URL = "url"; //ブックマーク　URL
     public final static String COL_ACCESS_TIME = "access_time"; //アクセス日時
 
@@ -24,26 +23,26 @@ public class DBAdapter {
     private DatabaseHelper dbHelper;
     protected Context context;
 
-    public DBAdapter(Context context) {
+    protected DBAdapter(Context context) {
         this.context = context;
         dbHelper = new DatabaseHelper(this.context);
     }
 
-    public DBAdapter openDB() {
+    DBAdapter openDB() {
         db = dbHelper.getWritableDatabase();
         return this;
     }
 
-    public void closeDB() {
+    void closeDB() {
         db.close();
         db = null;
     }
 
-    public Cursor selectBookmark(){
+    Cursor selectBookmark(){
         return db.query(DB_TABLE,null,null,null,null,null,COL_ACCESS_TIME + " DESC");
     }
 
-    public void insertBookmark(String title,String url){
+    void insertBookmark(String title,String url){
         db.beginTransaction();
         try {
             ContentValues values = new ContentValues();
@@ -59,7 +58,7 @@ public class DBAdapter {
         }
     }
 
-    public void updateAccessTime(String id){
+    void updateAccessTime(String id){
         db.beginTransaction();
 
         try {
@@ -80,7 +79,7 @@ public class DBAdapter {
         }
     }
 
-    public void deleteBookmark(String id){
+    void deleteBookmark(String id){
         db.beginTransaction();
         try {
             db.delete(DB_TABLE, COL_ID + " = ?", new String[]{id});

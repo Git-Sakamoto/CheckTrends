@@ -13,8 +13,13 @@
         <item>@string/book_mark_title</item>
     </string-array>
 
+    <!-- エラーメッセージ -->
+    <string name="error_message_is_empty">必要な情報を入力してください</string>
     <string name="error_message_is_cannot_connect">情報を取得できませんでした</string>
     <string name="error_message_is_cannot_network_connect">ネットワークに接続されていません</string>
+    <string name="error_message_is_cannot_url_connect">指定されたURLに接続できませんでした</string>
+
+    <string name="register_complete">登録が完了しました</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
