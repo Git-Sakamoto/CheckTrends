@@ -1,6 +1,7 @@
 package com.example.checktrends.bookmark;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
@@ -21,9 +22,26 @@ import com.example.checktrends.R;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-class UrlInputDialog extends DialogFragment {
+public class UrlInputDialog extends DialogFragment {
     AlertDialog alertDialog;
     EditTextManager editTextManager;
+
+    interface UrlInputDialogListener{
+        void registrationComplete();
+    }
+
+    private UrlInputDialogListener listener;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        try {
+            listener = (UrlInputDialogListener) getTargetFragment();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(getTargetFragment().toString() + "はインターフェースを実装していません");
+        }
+    }
 
     @NonNull
     @Override
@@ -84,7 +102,9 @@ class UrlInputDialog extends DialogFragment {
             dbAdapter.insertBookmark(title,url);
             dbAdapter.closeDB();
             System.out.println("タイトル：" + title);
-            System.out.println(url);
+            System.out.println("url：" + url);
+
+            listener.registrationComplete();
 
             alertDialog.dismiss();
 

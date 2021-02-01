@@ -6,9 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,7 +21,9 @@ import com.example.checktrends.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BookmarkFragment extends Fragment {
+public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInputDialogListener {
+    RecyclerView recyclerView;
+    BookmarkRecyclerAdapter bookmarkRecyclerAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,6 +39,39 @@ public class BookmarkFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        setBookmarkRecycler();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_bookmark,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_register:
+                UrlInputDialog urlInputDialog = new UrlInputDialog();
+                urlInputDialog.setTargetFragment(BookmarkFragment.this,0);
+                urlInputDialog.show(getParentFragmentManager(),"url");
+                break;
+        }
+
+        /*NavController navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
+        return NavigationUI.onNavDestinationSelected(item, navController)
+                || super.onOptionsItemSelected(item);*/
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void registrationComplete() {
+        setBookmarkRecycler();
+    }
+
+    void setBookmarkRecycler(){
         List<Bookmark> list = new ArrayList<>();
         DBAdapter dbAdapter = new DBAdapter(getActivity());
         dbAdapter.openDB();
@@ -56,30 +88,8 @@ public class BookmarkFragment extends Fragment {
         }
         c.close();
 
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        BookmarkRecyclerAdapter bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(getActivity(),list);
+        bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(getActivity(),list);
         recyclerView.setAdapter(bookmarkRecyclerAdapter);
-
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_bookmark,menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.menu_register:
-                new UrlInputDialog().show(getActivity().getSupportFragmentManager(),"url");
-                break;
-        }
-
-        /*NavController navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
-        return NavigationUI.onNavDestinationSelected(item, navController)
-                || super.onOptionsItemSelected(item);*/
-
-        return super.onOptionsItemSelected(item);
-    }
 }
