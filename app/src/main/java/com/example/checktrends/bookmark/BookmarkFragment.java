@@ -1,10 +1,14 @@
 package com.example.checktrends.bookmark;
 
+import android.content.DialogInterface;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -88,8 +92,52 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
         }
         c.close();
 
-        bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(getActivity(),list);
+        bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(this,list){
+            @Override
+            void onItemClick(int position) {
+                viewWebPage(Uri.parse(list.get(position).getUrl()));
+                updateAccessTime(list.get(position).getId());
+            }
+
+            @Override
+            void selectDeleteBookmark(int position) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("ブックマークの削除");
+                builder.setMessage(list.get(position).getTitle());
+                builder.setPositiveButton("削除",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        deleteBookmark(list.get(position).getId());
+                    }
+                });
+                builder.setNegativeButton("キャンセル", null);
+                builder.show();
+            }
+        };
+
         recyclerView.setAdapter(bookmarkRecyclerAdapter);
+    }
+
+    void viewWebPage(Uri uri){
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(getActivity(), uri);
+    }
+
+    void updateAccessTime(String id){
+        DBAdapter dbAdapter = new DBAdapter(getActivity());
+        dbAdapter.openDB();
+        dbAdapter.updateAccessTime(id);
+        dbAdapter.closeDB();
+
+        setBookmarkRecycler();
+    }
+
+    void deleteBookmark(String id){
+        DBAdapter dbAdapter = new DBAdapter(getActivity());
+        dbAdapter.openDB();
+        dbAdapter.deleteBookmark(id);
+        dbAdapter.closeDB();
+        setBookmarkRecycler();
     }
 
 }

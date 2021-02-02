@@ -113,4 +113,5 @@ public class UrlInputDialog extends DialogFragment {
             Toast.makeText(getActivity(), R.string.error_message_is_cannot_url_connect, Toast.LENGTH_SHORT).show();
         }
     }
+
 }

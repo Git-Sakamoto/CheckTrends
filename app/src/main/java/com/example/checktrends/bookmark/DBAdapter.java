@@ -19,6 +19,8 @@ class DBAdapter {
     public final static String COL_URL = "url"; //ブックマーク　URL
     public final static String COL_ACCESS_TIME = "access_time"; //アクセス日時
 
+    private final String NOT_ACCESSED = "未接続";
+
     private SQLiteDatabase db = null;
     private DatabaseHelper dbHelper;
     protected Context context;
@@ -39,7 +41,7 @@ class DBAdapter {
     }
 
     Cursor selectBookmark(){
-        return db.query(DB_TABLE,null,null,null,null,null,COL_ACCESS_TIME + " DESC");
+        return db.query(DB_TABLE,null,null,null,null,null, COL_ACCESS_TIME + " = '" + NOT_ACCESSED + "' ASC," + COL_ACCESS_TIME + " DESC," + COL_TITLE + " ASC");
     }
 
     void insertBookmark(String title,String url){
@@ -48,7 +50,7 @@ class DBAdapter {
             ContentValues values = new ContentValues();
             values.put(COL_TITLE, title);
             values.put(COL_URL, url);
-            values.put(COL_ACCESS_TIME, "未接続");
+            values.put(COL_ACCESS_TIME, NOT_ACCESSED);
             db.insert(DB_TABLE, null, values);
             db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -112,7 +114,7 @@ class DBAdapter {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS" + DB_TABLE);
+            db.execSQL("DROP TABLE IF EXISTS " + DB_TABLE);
             onCreate(db);
         }
     }
