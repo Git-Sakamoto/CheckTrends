@@ -18,14 +18,21 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
+        Fragment fragment = null;
         switch (position) {
             case 0:
-                return new ViewNewsFragment(position);
+                fragment = new ViewNewsFragment(position);
+                break;
+                //return new ViewNewsFragment(position);
             case 1:
-                return new ViewNewsFragment(position);
+                fragment = new ViewNewsFragment(position);
+                break;
+                //return new ViewNewsFragment(position);
             default:
-                return null;
+                fragment = new ViewNewsFragment(position);
+                break;
         }
+        return fragment;
     }
 
     @Override

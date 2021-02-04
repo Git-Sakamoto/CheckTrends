@@ -1,7 +1,6 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ProgressBar;
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
-import com.example.checktrends.News;
 import com.example.checktrends.RecyclerViewOnClick;
 import com.example.checktrends.ResultRecyclerAdapter;
 
@@ -44,7 +42,7 @@ public class HttpRequest {
 
     private class AsyncRunnable implements Runnable {
         List<News> result = new ArrayList<>();
-        String title,url;
+        String title,url,jpgUrl;
 
         Handler handler = new Handler(Looper.getMainLooper());
         @Override
@@ -55,7 +53,10 @@ public class HttpRequest {
                 for (Element element : elements) {
                     url = element.attr("href");
                     title = element.select("div.newsFeed_item_title").text();
-                    result.add(new News(title, url));
+                    String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
+                    jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
+                    System.out.println(jpgUrl);
+                    result.add(new News(title, url, jpgUrl));
                 }
             }catch (IOException e) {
                 e.printStackTrace();
@@ -87,7 +88,7 @@ public class HttpRequest {
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
+        /*ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
             @Override
             public void onClick(Object object) {
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
@@ -100,7 +101,10 @@ public class HttpRequest {
                 //未実装
             }
         });
-        recyclerView.setAdapter(resultListAdapter);
+        recyclerView.setAdapter(resultListAdapter);*/
+
+        YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(context,result);
+        recyclerView.setAdapter(yahooNewsRecyclerAdapter);
     }
 
 }

@@ -60,8 +60,8 @@ public class ResultRecyclerAdapter extends RecyclerView.Adapter<ResultRecyclerAd
         viewHolder.textRank.setText((position + 1) + "．");
 
         object = list.get(position);
-        if(object instanceof News){
-            viewHolder.textTitle.setText(((News) object).getTitle());
+        if(object instanceof com.example.checktrends.yahoonews.News){
+            viewHolder.textTitle.setText(((com.example.checktrends.yahoonews.News) object).getTitle());
         }else if(object instanceof String){
             viewHolder.textTitle.setText((String)object);
         }

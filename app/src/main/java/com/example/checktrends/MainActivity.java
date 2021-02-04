@@ -9,6 +9,8 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.bumptech.glide.Glide;
+
 public class MainActivity extends AppCompatActivity {
 
     AppBarConfiguration appBarConfiguration;
@@ -30,6 +32,15 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+        //画像のキャッシュを削除
+        final Glide glide = Glide.get(MainActivity.this);
+        glide.clearMemory();
+        new Thread(new Runnable() {
+            public void run(){
+                glide.clearDiskCache();
+            }
+        }).start();
     }
 
     @Override

@@ -20,7 +20,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
-import com.example.checktrends.ImageGetTask;
+import com.bumptech.glide.Glide;
 import com.example.checktrends.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -180,7 +180,9 @@ public class HttpRequest {
 
                                     ImageView imageView = view.findViewById(R.id.image_news_photo);
                                     if (TextUtils.isEmpty(news.getImageUrl()) == false) {
-                                        new ImageGetTask(imageView).execute(news.getImageUrl());
+                                        Glide.with(fragment.getActivity())
+                                                .load(news.getImageUrl())
+                                                .into(imageView);
                                     } else {
                                         imageView.setVisibility(View.GONE);
                                     }
