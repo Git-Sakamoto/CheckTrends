@@ -1,4 +1,4 @@
-package com.example.checktrends.bookmark;
+package com.example.checktrends.yahoonews;
 
 import android.content.Context;
 import android.view.ContextMenu;
@@ -17,12 +17,12 @@ import com.example.checktrends.R;
 
 import java.util.List;
 
-public class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecyclerAdapter.ViewHolder>{
+public class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRecyclerAdapter.ViewHolder>{
     Fragment fragment;
     Context context;
     private List<Bookmark> list;
 
-    public BookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> list){
+    YahooBookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> list){
         this.fragment = fragment;
         this.context = fragment.getActivity();
         this.list = list;
@@ -32,9 +32,9 @@ public class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecycl
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.recycler_bookmark, parent, false);
+                .inflate(R.layout.recycler_yahoo_bookmark, parent, false);
 
-        ViewHolder viewHolder = new ViewHolder(view);
+        YahooBookmarkRecyclerAdapter.ViewHolder viewHolder = new YahooBookmarkRecyclerAdapter.ViewHolder(view);
 
         viewHolder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,10 +64,9 @@ public class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecycl
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Bookmark bookmark = list.get(position);
-        viewHolder.textTitle.setText(bookmark.getTitle());
-        viewHolder.textAccessTime.setText(bookmark.getAccessTime());
+        holder.textTitle.setText(bookmark.getTitle());
     }
 
     @Override
@@ -78,18 +77,15 @@ public class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecycl
     public static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout linearLayout;
         TextView textTitle;
-        TextView textAccessTime;
 
         public ViewHolder(View view) {
             super(view);
             linearLayout = view.findViewById(R.id.linearLayout);
             textTitle = view.findViewById(R.id.text_title);
-            textAccessTime = view.findViewById(R.id.text_access_time);
         }
     }
 
     void onItemClick(int position){}
 
     void selectDeleteBookmark(int position){}
-
 }

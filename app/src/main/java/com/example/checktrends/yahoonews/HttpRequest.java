@@ -1,6 +1,7 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ProgressBar;
@@ -30,9 +31,11 @@ public class HttpRequest {
     RecyclerView recyclerView;
     ProgressBar progressBar;
     Context context;
+    Fragment fragment;
     private String URL;
 
     public HttpRequest(Fragment fragment,String URL) {
+        this.fragment = fragment;
         context = fragment.getActivity();
         recyclerView = fragment.getView().findViewById(R.id.recyclerView);
         progressBar = fragment.getView().findViewById(R.id.progressBar);
@@ -55,7 +58,6 @@ public class HttpRequest {
                     title = element.select("div.newsFeed_item_title").text();
                     String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
                     jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
-                    System.out.println(jpgUrl);
                     result.add(new News(title, url, jpgUrl));
                 }
             }catch (IOException e) {
@@ -85,25 +87,31 @@ public class HttpRequest {
 
         if(result.isEmpty()){
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
+            return;
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        /*ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
+
+        YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,result){
             @Override
-            public void onClick(Object object) {
+            void onItemClick(int position) {
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                 CustomTabsIntent customTabsIntent = builder.build();
-                customTabsIntent.launchUrl(context, Uri.parse(((News) object).getUrl()));
+                customTabsIntent.launchUrl(context, Uri.parse(result.get(position).getUrl()));
             }
 
             @Override
-            public void onLongClick(Object object) {
-                //未実装
+            void registerBookmark(int position) {
+                DBAdapter dbAdapter = new DBAdapter(context);
+                dbAdapter.openDB();
+                if(dbAdapter.insertBookmark(result.get(position).getTitle(),result.get(position).getUrl())){
+                    Toast.makeText(context,R.string.register_complete,Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(context,R.string.already_registered,Toast.LENGTH_SHORT).show();
+                }
+                dbAdapter.closeDB();
             }
-        });
-        recyclerView.setAdapter(resultListAdapter);*/
-
-        YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(context,result);
+        };
         recyclerView.setAdapter(yahooNewsRecyclerAdapter);
     }
 

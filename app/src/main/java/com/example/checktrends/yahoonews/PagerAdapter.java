@@ -2,9 +2,10 @@ package com.example.checktrends.yahoonews;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
-public class PagerAdapter extends FragmentStatePagerAdapter {
+public class PagerAdapter extends FragmentPagerAdapter {
     private CharSequence[] tabTitles = {"アクセスランキング", "コメントランキング"};
 
     public PagerAdapter(FragmentManager fm) {

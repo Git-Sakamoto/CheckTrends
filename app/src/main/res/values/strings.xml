@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">世間を知るアプリ</string>
 
+    <!--フラグメント用タイトル-->
     <string name="yahoo_news_title">Yahoo!ニュース</string>
+    <string name="yahoo_news_bookmark_title">Yahoo!ニュース　ブックマーク</string>
     <string name="twitter_title">Twitterトレンド</string>
     <string name="google_trends_title">Googleトレンド　急上昇ワード</string>
     <string name="book_mark_title">ブックマーク</string>
@@ -22,8 +24,10 @@
 
     <!-- メニュー用 -->
     <string name="delete">削除</string>
+    <string name="bookmark">あとで読む</string>
 
     <string name="register_complete">登録が完了しました</string>
+    <string name="already_registered">既に登録されています</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

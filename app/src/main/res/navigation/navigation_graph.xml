@@ -28,7 +28,6 @@
         android:id="@+id/twitterFragment"
         android:name="com.example.checktrends.twitter.TwitterFragment"
         android:label="@string/twitter_title" />
-
     <fragment
         android:id="@+id/googleTrendsFragment"
         android:name="com.example.checktrends.googletrends.GoogleTrendsFragment"
@@ -37,11 +36,20 @@
     <fragment
         android:id="@+id/yahooNewsFragment"
         android:name="com.example.checktrends.yahoonews.YahooNewsFragment"
-        android:label="@string/yahoo_news_title" />
+        android:label="@string/yahoo_news_title" >
+        <action
+            android:id="@+id/action_yahooNewsFragment_to_yahooNewsBookmarkFragment"
+            app:destination="@id/yahooNewsBookmarkFragment" />
+    </fragment>
     <fragment
         android:id="@+id/bookMarkFragment"
         android:name="com.example.checktrends.bookmark.BookmarkFragment"
         android:label="@string/book_mark_title"
         tools:layout="@layout/fragment_book_mark" />
+    <fragment
+        android:id="@+id/yahooNewsBookmarkFragment"
+        android:name="com.example.checktrends.yahoonews.YahooNewsBookmarkFragment"
+        android:label="@string/yahoo_news_bookmark_title"
+        tools:layout="@layout/fragment_yahoo_news_bookmark" />
 
 </navigation>
