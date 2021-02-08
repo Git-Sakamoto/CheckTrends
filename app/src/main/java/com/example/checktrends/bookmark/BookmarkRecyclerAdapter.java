@@ -17,12 +17,12 @@ import com.example.checktrends.R;
 
 import java.util.List;
 
-public class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecyclerAdapter.ViewHolder>{
-    Fragment fragment;
-    Context context;
+class BookmarkRecyclerAdapter extends RecyclerView.Adapter<BookmarkRecyclerAdapter.ViewHolder>{
+    private Fragment fragment;
+    private Context context;
     private List<Bookmark> list;
 
-    public BookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> list){
+    BookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> list){
         this.fragment = fragment;
         this.context = fragment.getActivity();
         this.list = list;

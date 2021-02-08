@@ -22,7 +22,7 @@ import com.example.checktrends.R;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-public class UrlInputDialog extends DialogFragment {
+class UrlInputDialog extends DialogFragment {
     AlertDialog alertDialog;
     EditTextManager editTextManager;
 

@@ -26,8 +26,11 @@
     <string name="delete">削除</string>
     <string name="bookmark">あとで読む</string>
 
+    <!-- メッセージ -->
     <string name="register_complete">登録が完了しました</string>
     <string name="already_registered">既に登録されています</string>
+    
+    <string name="already_read">既読</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

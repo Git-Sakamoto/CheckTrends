@@ -1,6 +1,8 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,8 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
-import com.example.checktrends.RecyclerViewOnClick;
-import com.example.checktrends.ResultRecyclerAdapter;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,14 +27,16 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HttpRequest {
+class RecyclerManager {
     RecyclerView recyclerView;
     ProgressBar progressBar;
     Context context;
     Fragment fragment;
     private String URL;
 
-    public HttpRequest(Fragment fragment,String URL) {
+    YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter;
+
+    RecyclerManager(Fragment fragment, String URL) {
         this.fragment = fragment;
         context = fragment.getActivity();
         recyclerView = fragment.getView().findViewById(R.id.recyclerView);
@@ -92,12 +94,19 @@ public class HttpRequest {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,result){
+        yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,result){
             @Override
             void onItemClick(int position) {
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                 CustomTabsIntent customTabsIntent = builder.build();
                 customTabsIntent.launchUrl(context, Uri.parse(result.get(position).getUrl()));
+
+                DBAdapter dbAdapter = new DBAdapter(context);
+                dbAdapter.openDB();
+                dbAdapter.insertAlreadyRead(result.get(position).getUrl());
+                dbAdapter.closeDB();
+
+                yahooNewsRecyclerAdapter.notifyItemChanged(position);
             }
 
             @Override

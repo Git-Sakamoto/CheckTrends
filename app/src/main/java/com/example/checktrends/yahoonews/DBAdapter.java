@@ -5,9 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.SimpleCursorAdapter;
 
-public class DBAdapter {
+class DBAdapter {
     private static final String DB_NAME = "yahoonews.db";
     private static final String DB_TABLE_ALREADY_READ = "already_read"; //既読テーブル
     private static final String DB_TABLE_BOOKMARK = "bookmark"; //ブックマークテーブル
@@ -24,7 +23,7 @@ public class DBAdapter {
     private DatabaseHelper dbHelper;
     protected Context context;
 
-    public DBAdapter(Context context) {
+    DBAdapter(Context context) {
         this.context = context;
         dbHelper = new DatabaseHelper(this.context);
     }
@@ -70,6 +69,44 @@ public class DBAdapter {
         db.beginTransaction();
         try {
             db.delete(DB_TABLE_BOOKMARK, COL_ID + " = ?", new String[]{id});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    Cursor selectAlreadyRead(){
+        return db.query(DB_TABLE_ALREADY_READ,null,null,null,null,null, null);
+    }
+
+    boolean insertAlreadyRead(String url){
+        long rowID = -1;
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COL_URL, url);
+            rowID = db.insert(DB_TABLE_ALREADY_READ, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+            if (rowID >= 0) {
+                //登録成功
+                return true;
+            } else {
+                //登録失敗
+                return false;
+            }
+        }
+    }
+
+    void deleteAlreadyRead(){
+        db.beginTransaction();
+        try {
+            db.delete(DB_TABLE_BOOKMARK,null,null);
             db.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();

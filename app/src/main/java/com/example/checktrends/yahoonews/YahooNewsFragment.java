@@ -16,8 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.checktrends.R;
-import com.example.checktrends.bookmark.BookmarkFragment;
-import com.example.checktrends.bookmark.UrlInputDialog;
 import com.google.android.material.tabs.TabLayout;
 
 public class YahooNewsFragment extends Fragment {

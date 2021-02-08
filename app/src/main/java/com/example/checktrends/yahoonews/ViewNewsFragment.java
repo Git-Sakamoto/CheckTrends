@@ -15,7 +15,7 @@ import com.example.checktrends.R;
 public class ViewNewsFragment extends Fragment {
     private String URL;
 
-    ViewNewsFragment(int position){
+    public ViewNewsFragment(int position){
         if(position == 0){
             URL = "https://news.yahoo.co.jp/ranking/access/news";
         }else{
@@ -31,7 +31,7 @@ public class ViewNewsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        new HttpRequest(this,URL).execute();
+        new RecyclerManager(this,URL).execute();
     }
 
 }

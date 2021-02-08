@@ -1,6 +1,7 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -17,17 +18,24 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.checktrends.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecyclerAdapter.ViewHolder>{
     Fragment fragment;
     Context context;
-    private List<News>list;
+    private List<News>newsList;
+    private List<String>alreadyReadList;
 
     YahooNewsRecyclerAdapter(Fragment fragment, List<News>list){
         this.fragment = fragment;
         this.context = fragment.getActivity();
-        this.list = list;
+        this.newsList = list;
+
+        alreadyReadList = getAlreadyReadList();
+        for(String url : alreadyReadList){
+            System.out.println("配列のURL："+url);
+        }
     }
 
     @NonNull
@@ -42,6 +50,9 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
             @Override
             public void onClick(View view) {
                 int position = viewHolder.getAdapterPosition();
+                if(alreadyReadList.contains(newsList.get(position).getUrl()) == false){
+                    alreadyReadList.add(newsList.get(position).getUrl());
+                }
                 onItemClick(position);
             }
         });
@@ -67,9 +78,16 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        News news = list.get(position);
+        News news = newsList.get(position);
 
         holder.textRank.setText((position + 1) + "．");
+
+        if (alreadyReadList.contains(news.getUrl())){
+            System.out.println(position +":"+news.getUrl());
+            holder.textAlreadyRead.setVisibility(View.VISIBLE);
+        }else{
+            holder.textAlreadyRead.setVisibility(View.GONE);
+        }
 
         Glide.with(context)
                 .load(news.getJpgUrl())
@@ -80,22 +98,39 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return newsList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
-        TextView textRank;
+        TextView textRank,textAlreadyRead,textNewsTitle;
         ImageView imageView;
-        TextView textNewsTitle;
 
         public ViewHolder(View view) {
             super(view);
             cardView = view.findViewById(R.id.cardView);
             textRank = view.findViewById(R.id.text_rank);
+            textAlreadyRead = view.findViewById(R.id.text_already_read);
             imageView = view.findViewById(R.id.image_news_photo);
             textNewsTitle = view.findViewById(R.id.text_news_title);
         }
+    }
+
+    List<String> getAlreadyReadList(){
+        List<String>result = new ArrayList<>();
+
+        DBAdapter dbAdapter = new DBAdapter(context);
+        dbAdapter.openDB();
+        Cursor c = dbAdapter.selectAlreadyRead();
+        if(c.moveToFirst()){
+            do {
+                result.add(c.getString(1));
+            }while (c.moveToNext());
+        }
+        c.close();
+        dbAdapter.closeDB();
+
+        return result;
     }
 
     void onItemClick(int position){}

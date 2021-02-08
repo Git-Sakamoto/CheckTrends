@@ -3,9 +3,8 @@ package com.example.checktrends.yahoonews;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 
-public class PagerAdapter extends FragmentPagerAdapter {
+class PagerAdapter extends FragmentPagerAdapter {
     private CharSequence[] tabTitles = {"アクセスランキング", "コメントランキング"};
 
     public PagerAdapter(FragmentManager fm) {
@@ -24,11 +23,9 @@ public class PagerAdapter extends FragmentPagerAdapter {
             case 0:
                 fragment = new ViewNewsFragment(position);
                 break;
-                //return new ViewNewsFragment(position);
             case 1:
                 fragment = new ViewNewsFragment(position);
                 break;
-                //return new ViewNewsFragment(position);
             default:
                 fragment = new ViewNewsFragment(position);
                 break;

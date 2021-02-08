@@ -1,25 +1,25 @@
 package com.example.checktrends.yahoonews;
 
-public class Bookmark {
+class Bookmark {
     private String id;
     private String title;
     private String url;
 
-    public Bookmark(String id, String title, String url){
+    Bookmark(String id, String title, String url){
         this.id = id;
         this.title = title;
         this.url = url;
     }
 
-    public String getId(){
+    String getId(){
         return id;
     }
 
-    public String getTitle(){
+    String getTitle(){
         return title;
     }
 
-    public String getUrl(){
+    String getUrl(){
         return url;
     }
 

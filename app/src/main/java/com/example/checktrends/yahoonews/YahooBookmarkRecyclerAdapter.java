@@ -17,7 +17,7 @@ import com.example.checktrends.R;
 
 import java.util.List;
 
-public class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRecyclerAdapter.ViewHolder>{
+class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRecyclerAdapter.ViewHolder>{
     Fragment fragment;
     Context context;
     private List<Bookmark> list;

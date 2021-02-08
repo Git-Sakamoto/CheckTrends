@@ -91,6 +91,7 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
             }while (c.moveToNext());
         }
         c.close();
+        dbAdapter.closeDB();
 
         bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(this,list){
             @Override
@@ -137,6 +138,7 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
         dbAdapter.openDB();
         dbAdapter.deleteBookmark(id);
         dbAdapter.closeDB();
+
         setBookmarkRecycler();
     }
 

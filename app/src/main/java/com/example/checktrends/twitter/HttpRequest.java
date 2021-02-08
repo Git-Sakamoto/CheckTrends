@@ -22,8 +22,11 @@ import com.example.checktrends.ResultRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import twitter4j.OEmbed;
 import twitter4j.OEmbedRequest;
@@ -135,80 +138,73 @@ public class HttpRequest {
 
     public void openWebViewDialog(String title){
         //ネットワークに繋がっていない場合はタイムアウトするまでtwitter.search(query)が続行されるため、事前にネットワークに繋がるか確認する
-        if(netWorkCheck(context)) {
-            new Thread(new Runnable() {
-                Status displayTweet = null;
-                @Override
-                public void run() {
-                    try {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar.setVisibility(android.widget.ProgressBar.VISIBLE);
-                            }
-                        });
+        if(netWorkCheck(context) == false) {
+            Toast.makeText(context, R.string.error_message_is_cannot_network_connect, Toast.LENGTH_LONG).show();
+            return;
+        }
 
-                        Query query = new Query();
-                        query.setQuery(title + SEARCH_FILTER);
-                        query.resultType(Query.POPULAR);
-                        query.setCount(100);
-                        query.lang("ja");
+        new Thread(new Runnable() {
+            Status displayTweet = null;
+            @Override
+            public void run() {
+                try {
+                    handler.post(() -> progressBar.setVisibility(ProgressBar.VISIBLE));
 
-                        //人気のツイートを検索
-                        QueryResult result;
-                        result = twitter.search(query);
-                        for (Status tweet : result.getTweets()) {
-                            if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
-                                displayTweet = tweet;
-                            }
+                    Query query = new Query();
+                    query.setQuery(title + SEARCH_FILTER);
+                    query.resultType(Query.POPULAR);
+                    query.setCount(100);
+                    query.lang("ja");
+
+                    //人気のツイートを検索
+                    QueryResult result;
+                    result = twitter.search(query);
+                    for (Status tweet : result.getTweets()) {
+                        if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
+                            displayTweet = tweet;
                         }
+                    }
 
-                        /*
+                    /*
                         人気のツイートが見つからなかった場合に、ツイートをSEARCH_FILTERの条件で検索する
                         最大でMAX_PAGE * 100件
-                         */
-                        if (displayTweet == null) {
-                            query.resultType(Query.MIXED);
-                            for (int searchPage = 1; searchPage <= MAX_PAGE; searchPage++) {
-                                System.out.println("現在のページ" + searchPage);
-                                result = twitter.search(query);
-                                for (Status tweet : result.getTweets()) {
-                                    if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
-                                        displayTweet = tweet;
-                                    }
-                                }
-                                query = result.nextQuery();
-                                if (query == null) break;
-                            }
-                        }
-
-                        //ツイートを埋め込んだダイアログを表示
-                        if (displayTweet != null) {
-                            OEmbedRequest oEmbedRequest = new OEmbedRequest(displayTweet.getId(), null);
-                            oEmbedRequest.setHideMedia(false);
-                            OEmbed oEmbed = twitter.getOEmbed(oEmbedRequest);
-
-                            WebViewDialogFragment dialog = new WebViewDialogFragment(oEmbed.getHtml());
-                            dialog.show(fragment.getActivity().getSupportFragmentManager(), null);
-                        }
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                    } finally {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar.setVisibility(ProgressBar.GONE);
-                                if (displayTweet == null) {
-                                    Toast.makeText(context, R.string.error_message_is_cannot_connect, Toast.LENGTH_LONG).show();
+                     */
+                    if (displayTweet == null) {
+                        query.resultType(Query.MIXED);
+                        for (int searchPage = 1; searchPage <= MAX_PAGE; searchPage++) {
+                            System.out.println("現在のページ" + searchPage);
+                            result = twitter.search(query);
+                            for (Status tweet : result.getTweets()) {
+                                if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
+                                    displayTweet = tweet;
                                 }
                             }
-                        });
+                            query = result.nextQuery();
+                            if (query == null) break;
+                        }
                     }
+
+                    //ツイートを埋め込んだダイアログを表示
+                    if (displayTweet != null) {
+                        OEmbedRequest oEmbedRequest = new OEmbedRequest(displayTweet.getId(), null);
+                        oEmbedRequest.setHideMedia(false);
+                        OEmbed oEmbed = twitter.getOEmbed(oEmbedRequest);
+
+                        WebViewDialogFragment dialog = new WebViewDialogFragment(oEmbed.getHtml());
+                        dialog.show(fragment.getActivity().getSupportFragmentManager(), null);
+                    }
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                } finally {
+                    handler.post(() -> {
+                        progressBar.setVisibility(ProgressBar.GONE);
+                        if (displayTweet == null) {
+                            Toast.makeText(context, R.string.error_message_is_cannot_connect, Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
-            }).start();
-        }else{
-            Toast.makeText(context, R.string.error_message_is_cannot_network_connect, Toast.LENGTH_LONG).show();
-        }
+            }
+        }).start();
     }
 
     boolean netWorkCheck(Context context){
