@@ -14,6 +14,7 @@ import com.example.checktrends.R;
 
 public class ViewNewsFragment extends Fragment {
     private String URL;
+    RecyclerManager recyclerManager;
 
     public ViewNewsFragment(int position){
         if(position == 0){
@@ -31,7 +32,13 @@ public class ViewNewsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        new RecyclerManager(this,URL).execute();
+        recyclerManager = new RecyclerManager(this,URL);
+        recyclerManager.execute();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        recyclerManager.tabChange();
+    }
 }

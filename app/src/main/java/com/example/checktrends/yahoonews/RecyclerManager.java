@@ -2,7 +2,6 @@ package com.example.checktrends.yahoonews;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,9 +31,11 @@ class RecyclerManager {
     ProgressBar progressBar;
     Context context;
     Fragment fragment;
-    private String URL;
 
-    YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter;
+    private String URL;
+    private List<News> newsList;
+
+    private YahooNewsRecyclerAdapter yahooNewsRecyclerAdapter;
 
     RecyclerManager(Fragment fragment, String URL) {
         this.fragment = fragment;
@@ -43,10 +44,11 @@ class RecyclerManager {
         progressBar = fragment.getView().findViewById(R.id.progressBar);
 
         this.URL = URL;
+
+        newsList = new ArrayList<>();
     }
 
     private class AsyncRunnable implements Runnable {
-        List<News> result = new ArrayList<>();
         String title,url,jpgUrl;
 
         Handler handler = new Handler(Looper.getMainLooper());
@@ -60,7 +62,7 @@ class RecyclerManager {
                     title = element.select("div.newsFeed_item_title").text();
                     String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
                     jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
-                    result.add(new News(title, url, jpgUrl));
+                    newsList.add(new News(title, url, jpgUrl));
                 }
             }catch (IOException e) {
                 e.printStackTrace();
@@ -68,7 +70,7 @@ class RecyclerManager {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    onPostExecute(result);
+                    onPostExecute();
                 }
             });
         }
@@ -84,26 +86,50 @@ class RecyclerManager {
         executorService.submit(new AsyncRunnable());
     }
 
-    void onPostExecute(List<News> result) {
+    void onPostExecute() {
         progressBar.setVisibility(android.widget.ProgressBar.GONE);
 
-        if(result.isEmpty()){
+        if(newsList.isEmpty()){
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
             return;
         }
 
+        setRecyclerView();
+    }
+
+    List<String> getAlreadyReadList(){
+        List<String>result = new ArrayList<>();
+
+        DBAdapter dbAdapter = new DBAdapter(context);
+        dbAdapter.openDB();
+        Cursor c = dbAdapter.selectAlreadyRead();
+        if(c.moveToFirst()){
+            do {
+                result.add(c.getString(1));
+            }while (c.moveToNext());
+        }
+        c.close();
+        dbAdapter.closeDB();
+
+        return result;
+    }
+
+    void setRecyclerView(){
+        List<String>alreadyReadList = getAlreadyReadList();
+
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,result){
+        yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,newsList,alreadyReadList){
             @Override
             void onItemClick(int position) {
+                //ニュースを表示、表示したニュースを既読テーブルに登録
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                 CustomTabsIntent customTabsIntent = builder.build();
-                customTabsIntent.launchUrl(context, Uri.parse(result.get(position).getUrl()));
+                customTabsIntent.launchUrl(context, Uri.parse(newsList.get(position).getUrl()));
 
                 DBAdapter dbAdapter = new DBAdapter(context);
                 dbAdapter.openDB();
-                dbAdapter.insertAlreadyRead(result.get(position).getUrl());
+                dbAdapter.insertAlreadyRead(newsList.get(position).getUrl());
                 dbAdapter.closeDB();
 
                 yahooNewsRecyclerAdapter.notifyItemChanged(position);
@@ -113,7 +139,7 @@ class RecyclerManager {
             void registerBookmark(int position) {
                 DBAdapter dbAdapter = new DBAdapter(context);
                 dbAdapter.openDB();
-                if(dbAdapter.insertBookmark(result.get(position).getTitle(),result.get(position).getUrl())){
+                if(dbAdapter.insertBookmark(newsList.get(position).getTitle(),newsList.get(position).getUrl())){
                     Toast.makeText(context,R.string.register_complete,Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(context,R.string.already_registered,Toast.LENGTH_SHORT).show();
@@ -122,6 +148,12 @@ class RecyclerManager {
             }
         };
         recyclerView.setAdapter(yahooNewsRecyclerAdapter);
+    }
+
+    void tabChange(){
+        if(yahooNewsRecyclerAdapter != null){
+            setRecyclerView();
+        }
     }
 
 }

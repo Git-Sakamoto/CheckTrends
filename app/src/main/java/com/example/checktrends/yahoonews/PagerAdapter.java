@@ -7,8 +7,8 @@ import androidx.fragment.app.FragmentPagerAdapter;
 class PagerAdapter extends FragmentPagerAdapter {
     private CharSequence[] tabTitles = {"アクセスランキング", "コメントランキング"};
 
-    public PagerAdapter(FragmentManager fm) {
-        super(fm);
+    public PagerAdapter(FragmentManager fm, int behaviorResumeOnlyCurrentFragment) {
+        super(fm,behaviorResumeOnlyCurrentFragment);
     }
 
     @Override

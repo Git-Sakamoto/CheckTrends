@@ -1,7 +1,6 @@
 package com.example.checktrends.yahoonews;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -18,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.checktrends.R;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecyclerAdapter.ViewHolder>{
@@ -27,15 +25,11 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
     private List<News>newsList;
     private List<String>alreadyReadList;
 
-    YahooNewsRecyclerAdapter(Fragment fragment, List<News>list){
+    YahooNewsRecyclerAdapter(Fragment fragment, List<News>newsList,List<String>alreadyReadList){
         this.fragment = fragment;
         this.context = fragment.getActivity();
-        this.newsList = list;
-
-        alreadyReadList = getAlreadyReadList();
-        for(String url : alreadyReadList){
-            System.out.println("配列のURL："+url);
-        }
+        this.newsList = newsList;
+        this.alreadyReadList = alreadyReadList;
     }
 
     @NonNull
@@ -83,7 +77,6 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
         holder.textRank.setText((position + 1) + "．");
 
         if (alreadyReadList.contains(news.getUrl())){
-            System.out.println(position +":"+news.getUrl());
             holder.textAlreadyRead.setVisibility(View.VISIBLE);
         }else{
             holder.textAlreadyRead.setVisibility(View.GONE);
@@ -114,23 +107,6 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
             imageView = view.findViewById(R.id.image_news_photo);
             textNewsTitle = view.findViewById(R.id.text_news_title);
         }
-    }
-
-    List<String> getAlreadyReadList(){
-        List<String>result = new ArrayList<>();
-
-        DBAdapter dbAdapter = new DBAdapter(context);
-        dbAdapter.openDB();
-        Cursor c = dbAdapter.selectAlreadyRead();
-        if(c.moveToFirst()){
-            do {
-                result.add(c.getString(1));
-            }while (c.moveToNext());
-        }
-        c.close();
-        dbAdapter.closeDB();
-
-        return result;
     }
 
     void onItemClick(int position){}
