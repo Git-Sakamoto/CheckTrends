@@ -32,6 +32,10 @@ public class YahooNewsRecyclerAdapter extends RecyclerView.Adapter<YahooNewsRecy
         this.alreadyReadList = alreadyReadList;
     }
 
+    void setAlreadyReadList(List<String> alreadyReadList) {
+        this.alreadyReadList = alreadyReadList;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

@@ -152,7 +152,8 @@ class RecyclerManager {
 
     void tabChange(){
         if(yahooNewsRecyclerAdapter != null){
-            setRecyclerView();
+            yahooNewsRecyclerAdapter.setAlreadyReadList(getAlreadyReadList());
+            yahooNewsRecyclerAdapter.notifyDataSetChanged();
         }
     }
 
