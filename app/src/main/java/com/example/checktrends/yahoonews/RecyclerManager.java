@@ -101,7 +101,6 @@ class RecyclerManager {
         List<String>result = new ArrayList<>();
 
         DBAdapter dbAdapter = new DBAdapter(context);
-        dbAdapter.openDB();
         Cursor c = dbAdapter.selectAlreadyRead();
         if(c.moveToFirst()){
             do {
@@ -109,7 +108,6 @@ class RecyclerManager {
             }while (c.moveToNext());
         }
         c.close();
-        dbAdapter.closeDB();
 
         return result;
     }
@@ -128,9 +126,7 @@ class RecyclerManager {
                 customTabsIntent.launchUrl(context, Uri.parse(newsList.get(position).getUrl()));
 
                 DBAdapter dbAdapter = new DBAdapter(context);
-                dbAdapter.openDB();
                 dbAdapter.insertAlreadyRead(newsList.get(position).getUrl());
-                dbAdapter.closeDB();
 
                 yahooNewsRecyclerAdapter.notifyItemChanged(position);
             }
@@ -138,13 +134,11 @@ class RecyclerManager {
             @Override
             void registerBookmark(int position) {
                 DBAdapter dbAdapter = new DBAdapter(context);
-                dbAdapter.openDB();
                 if(dbAdapter.insertBookmark(newsList.get(position).getTitle(),newsList.get(position).getUrl())){
                     Toast.makeText(context,R.string.register_complete,Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(context,R.string.already_registered,Toast.LENGTH_SHORT).show();
                 }
-                dbAdapter.closeDB();
             }
         };
         recyclerView.setAdapter(yahooNewsRecyclerAdapter);

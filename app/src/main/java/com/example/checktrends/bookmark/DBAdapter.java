@@ -28,16 +28,7 @@ class DBAdapter {
     protected DBAdapter(Context context) {
         this.context = context;
         dbHelper = new DatabaseHelper(this.context);
-    }
-
-    DBAdapter openDB() {
         db = dbHelper.getWritableDatabase();
-        return this;
-    }
-
-    void closeDB() {
-        db.close();
-        db = null;
     }
 
     Cursor selectBookmark(){

@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -42,11 +41,6 @@ public class WebViewDialogFragment extends DialogFragment {
                             " }); "+
                         " }); " +
 
-                        " window.addEventListener('load', function(){ " +
-                            " window.addEventListener('offline', function(){ " +
-                                " Android.networkIsOffline(); " +
-                            " }); " +
-                        " }); "+
                     "</script>";
 
     WebViewDialogFragment(String html){
@@ -91,10 +85,5 @@ public class WebViewDialogFragment extends DialogFragment {
             }
         }
 
-        @JavascriptInterface
-        public void networkIsOffline() {
-            hideProgressDialog();
-            Toast.makeText(getActivity(), R.string.error_message_is_cannot_network_connect, Toast.LENGTH_LONG).show();
-        }
     }
 }

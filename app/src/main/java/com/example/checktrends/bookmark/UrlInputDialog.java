@@ -20,9 +20,10 @@ import com.example.checktrends.EditTextManager;
 import com.example.checktrends.R;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-class UrlInputDialog extends DialogFragment {
+public class UrlInputDialog extends DialogFragment {
     AlertDialog alertDialog;
     EditTextManager editTextManager;
 
@@ -85,22 +86,18 @@ class UrlInputDialog extends DialogFragment {
             return;
         }
 
-        GetHtmlTitle getHtmlTitle = new GetHtmlTitle(url);
-        FutureTask futureTask = new FutureTask(getHtmlTitle);
-        Thread thread = new Thread(futureTask);
-        thread.start();
+        Future future = Executors.newSingleThreadExecutor().submit(new GetHtmlTitle(url));
 
         try {
-            title = (String) futureTask.get();
+            title = (String) future.get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
 
         if(title != null){
             DBAdapter dbAdapter = new DBAdapter(getActivity());
-            dbAdapter.openDB();
             dbAdapter.insertBookmark(title,url);
-            dbAdapter.closeDB();
+
             System.out.println("タイトル：" + title);
             System.out.println("url：" + url);
 

@@ -78,7 +78,6 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
     void setBookmarkRecycler(){
         List<Bookmark> list = new ArrayList<>();
         DBAdapter dbAdapter = new DBAdapter(getActivity());
-        dbAdapter.openDB();
         Cursor c = dbAdapter.selectBookmark();
         if(c.moveToFirst()){
             do {
@@ -91,7 +90,6 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
             }while (c.moveToNext());
         }
         c.close();
-        dbAdapter.closeDB();
 
         bookmarkRecyclerAdapter = new BookmarkRecyclerAdapter(this,list){
             @Override
@@ -126,18 +124,14 @@ public class BookmarkFragment extends Fragment implements UrlInputDialog.UrlInpu
 
     void updateAccessTime(String id){
         DBAdapter dbAdapter = new DBAdapter(getActivity());
-        dbAdapter.openDB();
         dbAdapter.updateAccessTime(id);
-        dbAdapter.closeDB();
 
         setBookmarkRecycler();
     }
 
     void deleteBookmark(String id){
         DBAdapter dbAdapter = new DBAdapter(getActivity());
-        dbAdapter.openDB();
         dbAdapter.deleteBookmark(id);
-        dbAdapter.closeDB();
 
         setBookmarkRecycler();
     }

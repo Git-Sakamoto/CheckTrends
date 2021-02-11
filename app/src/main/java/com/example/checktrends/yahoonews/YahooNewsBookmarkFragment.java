@@ -41,7 +41,6 @@ public class YahooNewsBookmarkFragment extends Fragment {
     void setBookmarkRecycler(){
         List<Bookmark> list = new ArrayList<>();
         DBAdapter dbAdapter = new DBAdapter(getActivity());
-        dbAdapter.openDB();
         Cursor c = dbAdapter.selectBookmark();
         if(c.moveToFirst()){
             do {
@@ -86,9 +85,7 @@ public class YahooNewsBookmarkFragment extends Fragment {
 
     void deleteBookmark(String id){
         DBAdapter dbAdapter = new DBAdapter(getActivity());
-        dbAdapter.openDB();
         dbAdapter.deleteBookmark(id);
-        dbAdapter.closeDB();
         setBookmarkRecycler();
     }
 }
