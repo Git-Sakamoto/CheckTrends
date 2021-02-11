@@ -26,6 +26,8 @@ import java.util.List;
 public class YahooNewsBookmarkFragment extends Fragment {
     RecyclerView recyclerView;
     YahooBookmarkRecyclerAdapter yahooBookmarkRecyclerAdapter;
+    List<Bookmark> list;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -43,7 +45,7 @@ public class YahooNewsBookmarkFragment extends Fragment {
     }
 
     void setBookmarkRecycler(){
-        List<Bookmark> list = new ArrayList<>();
+        list = new ArrayList<>();
         DBAdapter dbAdapter = new DBAdapter(getActivity());
         Cursor c = dbAdapter.selectBookmark();
         if(c.moveToFirst()){
@@ -60,36 +62,40 @@ public class YahooNewsBookmarkFragment extends Fragment {
         yahooBookmarkRecyclerAdapter = new YahooBookmarkRecyclerAdapter(this,list,getAlreadyReadList()){
             @Override
             void onItemClick(int position) {
-                viewWebPage(Uri.parse(list.get(position).getUrl()));
-
-                DBAdapter dbAdapter = new DBAdapter(context);
-                dbAdapter.insertAlreadyRead(list.get(position).getUrl());
-
-                yahooBookmarkRecyclerAdapter.notifyItemChanged(position);
+                viewWebPage(position);
             }
 
             @Override
             void selectDeleteBookmark(int position) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("ブックマークの削除");
-                builder.setMessage(list.get(position).getTitle());
-                builder.setPositiveButton("削除",new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        deleteBookmark(list.get(position).getId());
-                    }
-                });
-                builder.setNegativeButton("キャンセル", null);
-                builder.show();
+                openDeleteDialog(position);
             }
         };
 
         recyclerView.setAdapter(yahooBookmarkRecyclerAdapter);
     }
 
-    void viewWebPage(Uri uri){
+    void viewWebPage(int position){
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
         CustomTabsIntent customTabsIntent = builder.build();
-        customTabsIntent.launchUrl(getActivity(), uri);
+        customTabsIntent.launchUrl(getActivity(), Uri.parse(list.get(position).getUrl()));
+
+        DBAdapter dbAdapter = new DBAdapter(getActivity());
+        dbAdapter.insertAlreadyRead(list.get(position).getUrl());
+
+        yahooBookmarkRecyclerAdapter.notifyItemChanged(position);
+    }
+
+    void openDeleteDialog(int position){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("ブックマークの削除");
+        builder.setMessage(list.get(position).getTitle());
+        builder.setPositiveButton("削除",new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                deleteBookmark(list.get(position).getId());
+            }
+        });
+        builder.setNegativeButton("キャンセル", null);
+        builder.show();
     }
 
     void deleteBookmark(String id){

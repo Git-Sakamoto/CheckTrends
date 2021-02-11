@@ -49,24 +49,11 @@ class RecyclerManager {
     }
 
     private class AsyncRunnable implements Runnable {
-        String title,url,jpgUrl;
-
         Handler handler = new Handler(Looper.getMainLooper());
         @Override
         public void run() {
-            try {
-                Document document = Jsoup.connect(URL).get();
-                Elements elements = document.select("a.newsFeed_item_link");
-                for (Element element : elements) {
-                    url = element.attr("href");
-                    title = element.select("div.newsFeed_item_title").text();
-                    String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
-                    jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
-                    newsList.add(new News(title, url, jpgUrl));
-                }
-            }catch (IOException e) {
-                e.printStackTrace();
-            }
+            addNewsList();
+
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -97,6 +84,23 @@ class RecyclerManager {
         setRecyclerView();
     }
 
+    void addNewsList(){
+        String title,url,jpgUrl;
+        try {
+            Document document = Jsoup.connect(URL).get();
+            Elements elements = document.select("a.newsFeed_item_link");
+            for (Element element : elements) {
+                url = element.attr("href");
+                title = element.select("div.newsFeed_item_title").text();
+                String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
+                jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
+                newsList.add(new News(title, url, jpgUrl));
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     List<String> getAlreadyReadList(){
         List<String>result = new ArrayList<>();
 
@@ -120,28 +124,36 @@ class RecyclerManager {
         yahooNewsRecyclerAdapter = new YahooNewsRecyclerAdapter(fragment,newsList,alreadyReadList){
             @Override
             void onItemClick(int position) {
-                //ニュースを表示、表示したニュースを既読テーブルに登録
-                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                CustomTabsIntent customTabsIntent = builder.build();
-                customTabsIntent.launchUrl(context, Uri.parse(newsList.get(position).getUrl()));
-
-                DBAdapter dbAdapter = new DBAdapter(context);
-                dbAdapter.insertAlreadyRead(newsList.get(position).getUrl());
-
-                yahooNewsRecyclerAdapter.notifyItemChanged(position);
+                viewNews(position);
             }
 
             @Override
             void registerBookmark(int position) {
-                DBAdapter dbAdapter = new DBAdapter(context);
-                if(dbAdapter.insertBookmark(newsList.get(position).getTitle(),newsList.get(position).getUrl())){
-                    Toast.makeText(context,R.string.register_complete,Toast.LENGTH_SHORT).show();
-                }else{
-                    Toast.makeText(context,R.string.already_registered,Toast.LENGTH_SHORT).show();
-                }
+                RecyclerManager.this.registerBookmark(position);
             }
         };
         recyclerView.setAdapter(yahooNewsRecyclerAdapter);
+    }
+
+    void viewNews(int position){
+        //ニュースを表示、表示したニュースを既読テーブルに登録
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(context, Uri.parse(newsList.get(position).getUrl()));
+
+        DBAdapter dbAdapter = new DBAdapter(context);
+        dbAdapter.insertAlreadyRead(newsList.get(position).getUrl());
+
+        yahooNewsRecyclerAdapter.notifyItemChanged(position);
+    }
+
+    void registerBookmark(int position){
+        DBAdapter dbAdapter = new DBAdapter(context);
+        if(dbAdapter.insertBookmark(newsList.get(position).getTitle(),newsList.get(position).getUrl())){
+            Toast.makeText(context,R.string.register_complete,Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(context,R.string.already_registered,Toast.LENGTH_SHORT).show();
+        }
     }
 
     void tabChange(){
