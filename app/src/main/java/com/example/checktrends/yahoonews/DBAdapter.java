@@ -97,7 +97,7 @@ class DBAdapter {
     void deleteAlreadyRead(){
         db.beginTransaction();
         try {
-            db.delete(DB_TABLE_BOOKMARK,null,null);
+            db.delete(DB_TABLE_ALREADY_READ,null,null);
             db.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();

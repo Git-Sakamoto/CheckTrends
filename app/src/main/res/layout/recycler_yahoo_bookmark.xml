@@ -10,6 +10,15 @@
     android:foreground="?android:attr/selectableItemBackground">
 
     <TextView
+        android:id="@+id/text_already_read"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:text="@string/already_read"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/text_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

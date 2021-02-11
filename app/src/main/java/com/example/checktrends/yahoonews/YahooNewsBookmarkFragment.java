@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +35,9 @@ public class YahooNewsBookmarkFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         recyclerView = view.findViewById(R.id.recyclerView);
+        RecyclerView.ItemDecoration itemDecoration =
+                new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(itemDecoration);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         setBookmarkRecycler();
     }
@@ -53,10 +57,15 @@ public class YahooNewsBookmarkFragment extends Fragment {
         }
         c.close();
 
-        yahooBookmarkRecyclerAdapter = new YahooBookmarkRecyclerAdapter(this,list){
+        yahooBookmarkRecyclerAdapter = new YahooBookmarkRecyclerAdapter(this,list,getAlreadyReadList()){
             @Override
             void onItemClick(int position) {
                 viewWebPage(Uri.parse(list.get(position).getUrl()));
+
+                DBAdapter dbAdapter = new DBAdapter(context);
+                dbAdapter.insertAlreadyRead(list.get(position).getUrl());
+
+                yahooBookmarkRecyclerAdapter.notifyItemChanged(position);
             }
 
             @Override
@@ -87,5 +96,20 @@ public class YahooNewsBookmarkFragment extends Fragment {
         DBAdapter dbAdapter = new DBAdapter(getActivity());
         dbAdapter.deleteBookmark(id);
         setBookmarkRecycler();
+    }
+
+    List<String> getAlreadyReadList(){
+        List<String>result = new ArrayList<>();
+
+        DBAdapter dbAdapter = new DBAdapter(getActivity());
+        Cursor c = dbAdapter.selectAlreadyRead();
+        if(c.moveToFirst()){
+            do {
+                result.add(c.getString(1));
+            }while (c.moveToNext());
+        }
+        c.close();
+
+        return result;
     }
 }

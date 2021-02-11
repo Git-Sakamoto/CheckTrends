@@ -29,6 +29,7 @@
     <!-- メッセージ -->
     <string name="register_complete">登録が完了しました</string>
     <string name="already_registered">既に登録されています</string>
+    <string name = "deletion_completed">削除が完了しました</string>
     
     <string name="already_read">既読</string>
 

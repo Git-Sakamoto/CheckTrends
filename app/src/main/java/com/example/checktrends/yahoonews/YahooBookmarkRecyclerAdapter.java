@@ -20,12 +20,14 @@ import java.util.List;
 class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRecyclerAdapter.ViewHolder>{
     Fragment fragment;
     Context context;
-    private List<Bookmark> list;
+    private List<Bookmark> bookmarkList;
+    private List<String> alreadyReadList;
 
-    YahooBookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> list){
+    YahooBookmarkRecyclerAdapter(Fragment fragment, List<Bookmark> bookmarkList,List<String>alreadyReadList){
         this.fragment = fragment;
         this.context = fragment.getActivity();
-        this.list = list;
+        this.bookmarkList = bookmarkList;
+        this.alreadyReadList = alreadyReadList;
     }
 
     @NonNull
@@ -40,6 +42,9 @@ class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRec
             @Override
             public void onClick(View view) {
                 int position = viewHolder.getAdapterPosition();
+                if(alreadyReadList.contains(bookmarkList.get(position).getUrl()) == false){
+                    alreadyReadList.add(bookmarkList.get(position).getUrl());
+                }
                 onItemClick(position);
             }
         });
@@ -65,21 +70,29 @@ class YahooBookmarkRecyclerAdapter extends RecyclerView.Adapter<YahooBookmarkRec
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Bookmark bookmark = list.get(position);
+        Bookmark bookmark = bookmarkList.get(position);
+
+        if (alreadyReadList.contains(bookmark.getUrl())){
+            holder.textAlreadyRead.setVisibility(View.VISIBLE);
+        }else{
+            holder.textAlreadyRead.setVisibility(View.GONE);
+        }
+
         holder.textTitle.setText(bookmark.getTitle());
     }
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return bookmarkList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout linearLayout;
-        TextView textTitle;
+        TextView textAlreadyRead,textTitle;
 
         public ViewHolder(View view) {
             super(view);
+            textAlreadyRead = view.findViewById(R.id.text_already_read);
             linearLayout = view.findViewById(R.id.linearLayout);
             textTitle = view.findViewById(R.id.text_title);
         }

@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/menu_delete"
+        android:icon="@drawable/ic_baseline_delete_24"
+        android:title=""
+        app:showAsAction="always" />
+    <item
         android:id="@+id/menu_bookmark"
         android:icon="@drawable/ic_baseline_bookmarks_24"
         android:title=""
