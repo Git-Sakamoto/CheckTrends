@@ -19,7 +19,7 @@ import com.example.checktrends.R;
 
 import java.util.List;
 
-public class NewsRecyclerAdapter extends RecyclerView.Adapter<NewsRecyclerAdapter.ViewHolder>{
+class NewsRecyclerAdapter extends RecyclerView.Adapter<NewsRecyclerAdapter.ViewHolder>{
     Context context;
     List<News>list;
 

@@ -3,35 +3,24 @@ package com.example.checktrends.googletrends;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.checktrends.R;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import okhttp3.Call;
@@ -40,7 +29,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class HttpRequest {
+class HttpRequest {
     private Fragment fragment;
     private ProgressDialog dialog;
 
@@ -78,9 +67,7 @@ public class HttpRequest {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
-                    LinkedHashMap<String, LinkedHashMap<String, News>> result = new LinkedHashMap<>();
-
-                    List<Object> test = new ArrayList<>();
+                    List<Object> result = new ArrayList<>();
 
                     //JSONを取得した時に不要な文字列 )]}', が含まれているので、削除しないと正しく読み込むことができない
                     //全データ
@@ -89,13 +76,11 @@ public class HttpRequest {
                     //日付や、日付に対するトレンドの配列が格納された配列　日付の降順
                     JSONArray trendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
 
-                    //日付をキーに、トレンド名と関連ニュースが格納されたMapを作成する
                     for (int dateCount = 0; dateCount < trendingSearchesDays.length(); dateCount++) {
-                        LinkedHashMap<String, News> map = new LinkedHashMap<>();
 
                         //日付の格納
                         String date = trendingSearchesDays.getJSONObject(dateCount).getString("date");
-                        test.add(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
+                        result.add(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
 
                         //トレンドの配列
                         JSONArray trendingSearches = trendingSearchesDays.getJSONObject(dateCount).getJSONArray("trendingSearches");
@@ -110,35 +95,12 @@ public class HttpRequest {
                                 //トレンドに対する関連ニュースが格納された配列
                                 JSONArray articles = trendingSearches.getJSONObject(trendCount).getJSONArray("articles");
 
-                                for(int newsCount = 0; newsCount < articles.length(); newsCount++){
-                                    News news;
+                                newsList = getNewsList(articles);
 
-                                    //ニュースにサムネイルが用意されているか確認
-                                    if (articles.getJSONObject(newsCount).isNull("image") == false) {
-                                        //サムネイル付きのニュース
-                                        news = new News(
-                                                articles.getJSONObject(newsCount).getString("title"),
-                                                articles.getJSONObject(newsCount).getString("timeAgo"),
-                                                articles.getJSONObject(newsCount).getString("source"),
-                                                articles.getJSONObject(newsCount).getJSONObject("image").getString("newsUrl"),
-                                                articles.getJSONObject(newsCount).getJSONObject("image").getString("imageUrl")
-                                        );
-                                    } else {
-                                        //サムネイル無しのニュース
-                                        news = new News(
-                                                articles.getJSONObject(newsCount).getString("title"),
-                                                articles.getJSONObject(newsCount).getString("timeAgo"),
-                                                articles.getJSONObject(newsCount).getString("source"),
-                                                articles.getJSONObject(newsCount).getString("url"),
-                                                null
-                                        );
-                                    }
-                                    newsList.add(news);
-                                }
                             }
 
-                            test.add(new Trend(
-                                    String.valueOf(trendCount + 1) + "．",
+                            result.add(new Trend(
+                                    (trendCount + 1) + "．",
                                     trendingSearches.getJSONObject(trendCount).getJSONObject("title")
                                             .getString("query"),
                                     newsList)
@@ -149,107 +111,65 @@ public class HttpRequest {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            RecyclerView recyclerView = fragment.getView().findViewById(R.id.recyclerView);
-                            recyclerView.setLayoutManager(new LinearLayoutManager(fragment.getActivity()));
-                            GoogleTrendsRecyclerAdapter googleTrendsRecyclerAdapter = new GoogleTrendsRecyclerAdapter(fragment.getActivity(),test){
-                                @Override
-                                void clickSearchButton(String word){
-                                    searchWord(word);
-                                }
-                            };
-                            recyclerView.setAdapter(googleTrendsRecyclerAdapter);
-                            /*LinearLayout linearLayout = fragment.getView().findViewById(R.id.linearLayout);
-
-                            for (String date : result.keySet()) {
-                                TextView textDate = new TextView(fragment.getActivity());
-                                textDate.setText(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
-                                textDate.setTextSize(20);
-                                linearLayout.addView(textDate);
-
-                                int rank = 1;
-                                LinkedHashMap<String, News> titleMap = result.get(date);
-                                for (String title : titleMap.keySet()) {
-                                    View view = LayoutInflater.from(fragment.getActivity()).inflate(R.layout.google_trends_result, null);
-
-                                    TextView textRank = view.findViewById(R.id.text_rank);
-                                    textRank.setText(rank + "．");
-
-                                    TextView textTitle = view.findViewById(R.id.text_title);
-                                    textTitle.setText(title);
-
-                                    ImageButton buttonSearch = view.findViewById(R.id.button_search);
-                                    buttonSearch.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                                            intent.putExtra(SearchManager.QUERY, title);
-                                            fragment.startActivity(intent);
-                                        }
-                                    });
-
-                                    LinearLayout layoutExpansion = view.findViewById(R.id.layout_expansion);
-                                    ImageButton buttonExpansion = view.findViewById(R.id.button_expansion);
-                                    buttonExpansion.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            if (layoutExpansion.getVisibility() == View.GONE) {
-                                                buttonExpansion.setBackgroundResource(R.drawable.icon_tenkai_up_arrow);
-                                                layoutExpansion.setVisibility(View.VISIBLE);
-                                            } else {
-                                                buttonExpansion.setBackgroundResource(R.drawable.icon_tenkai_down_arrow);
-                                                layoutExpansion.setVisibility(View.GONE);
-                                            }
-                                        }
-                                    });
-
-                                    News news = titleMap.get(title);
-
-                                    TextView textNewsTitle = view.findViewById(R.id.text_news_title);
-                                    textNewsTitle.setText(news.getTitle());
-
-                                    TextView textNewsSource = view.findViewById(R.id.text_news_source);
-                                    textNewsSource.setText(news.getSource() + "　" + news.getTimeAgo().substring(0, 1) + "時間前");
-
-                                    ImageView imageView = view.findViewById(R.id.image_news_photo);
-                                    if (TextUtils.isEmpty(news.getImageUrl()) == false) {
-                                        Glide.with(fragment.getActivity())
-                                                .load(news.getImageUrl())
-                                                .into(imageView);
-                                    } else {
-                                        imageView.setVisibility(View.GONE);
-                                    }
-
-                                    CardView cardView = view.findViewById(R.id.cardView);
-                                    cardView.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                                            CustomTabsIntent customTabsIntent = builder.build();
-                                            customTabsIntent.launchUrl(fragment.getActivity(), Uri.parse(news.getNewsUrl()));
-                                        }
-                                    });
-
-                                    linearLayout.addView(view);
-
-                                    rank++;
-                                }
-                            }*/
-                        }
-                    });
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
                             if (dialog != null) {
                                 dialog.dismiss();
                             }
+
+                            setRecyclerView(result);
                         }
                     });
+
                 } catch (Exception e) {
                     Log.e("error", e.getMessage());
                 }
             }
         });
+    }
+
+
+
+    List<News> getNewsList(JSONArray articles) throws JSONException {
+        List<News> newsList = new ArrayList<>();
+
+        for(int newsCount = 0; newsCount < articles.length(); newsCount++){
+            News news;
+
+            //ニュースにサムネイルが用意されているか確認
+            if (articles.getJSONObject(newsCount).isNull("image") == false) {
+                //サムネイル付きのニュース
+                news = new News(
+                        articles.getJSONObject(newsCount).getString("title"),
+                        articles.getJSONObject(newsCount).getString("timeAgo"),
+                        articles.getJSONObject(newsCount).getString("source"),
+                        articles.getJSONObject(newsCount).getJSONObject("image").getString("newsUrl"),
+                        articles.getJSONObject(newsCount).getJSONObject("image").getString("imageUrl")
+                );
+            } else {
+                //サムネイル無しのニュース
+                news = new News(
+                        articles.getJSONObject(newsCount).getString("title"),
+                        articles.getJSONObject(newsCount).getString("timeAgo"),
+                        articles.getJSONObject(newsCount).getString("source"),
+                        articles.getJSONObject(newsCount).getString("url"),
+                        null
+                );
+            }
+            newsList.add(news);
+        }
+
+        return newsList;
+    }
+
+    void setRecyclerView(List<Object>result){
+        RecyclerView recyclerView = fragment.getView().findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(fragment.getActivity()));
+        GoogleTrendsRecyclerAdapter googleTrendsRecyclerAdapter = new GoogleTrendsRecyclerAdapter(fragment.getActivity(),result){
+            @Override
+            void clickSearchButton(String word){
+                searchWord(word);
+            }
+        };
+        recyclerView.setAdapter(googleTrendsRecyclerAdapter);
     }
 
     void searchWord(String word){

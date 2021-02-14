@@ -2,7 +2,7 @@ package com.example.checktrends.googletrends;
 
 import java.util.List;
 
-public class Trend {
+class Trend {
     String rank;
     String trendTitle;
     List<News> newsList;

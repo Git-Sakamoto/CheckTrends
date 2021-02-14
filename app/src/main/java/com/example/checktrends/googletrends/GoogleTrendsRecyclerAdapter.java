@@ -17,7 +17,7 @@ import com.example.checktrends.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
+class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
     Context context;
     List<Object> list;
 
@@ -89,6 +89,7 @@ public class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
         }else{
             ((TrendViewHolder) holder).textRank.setText(((Trend)object).getRank());
             ((TrendViewHolder) holder).textTrendTitle.setText(((Trend)object).getTrendTitle());
+
             ((TrendViewHolder) holder).recyclerView.setAdapter(new NewsRecyclerAdapter(context,((Trend)object).getNewsList()));
 
             if(visible.contains(String.valueOf(position))){
