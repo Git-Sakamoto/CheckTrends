@@ -21,6 +21,21 @@ import java.util.GregorianCalendar;
 
 public class GoogleTrendsFragment extends Fragment implements CustomDatePicker.CustomDatePickerListener {
     Calendar calendar = Calendar.getInstance();
+    GregorianCalendar maxDate,minDate;
+
+    {
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        //明日以降の日付を選択不可にする
+        maxDate = new GregorianCalendar();
+        maxDate.set(year, month, day);
+
+        //Googleトレンドの急上昇ワードは29日前までのデータしか取得できないため、選択を制限する
+        minDate = new GregorianCalendar();
+        minDate.set(year, month, day - 29);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,18 +63,6 @@ public class GoogleTrendsFragment extends Fragment implements CustomDatePicker.C
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_past_trends:
-                int year = calendar.get(Calendar.YEAR);
-                int month = calendar.get(Calendar.MONTH);
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-                //明日以降の日付を選択不可にする
-                GregorianCalendar maxDate = new GregorianCalendar();
-                maxDate.set(year, month, day);
-
-                //Googleトレンドの急上昇ワードは29日前までのデータしか取得できないため、選択を制限する
-                GregorianCalendar minDate = new GregorianCalendar();
-                minDate.set(year, month, day - 29);
-
                 CustomDatePicker customDatePicker = new CustomDatePicker(calendar,maxDate,minDate);
                 customDatePicker.setTargetFragment(GoogleTrendsFragment.this,0);
                 customDatePicker.show(getParentFragmentManager(),"dialog");
