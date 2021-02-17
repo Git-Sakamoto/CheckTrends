@@ -3,9 +3,9 @@ package com.example.checktrends.googletrends;
 import java.util.List;
 
 class Trend {
-    String rank;
-    String trendTitle;
-    List<News> newsList;
+    private String rank;
+    private String trendTitle;
+    private List<News> newsList;
 
     Trend(String rank,String trendTitle,List<News> newsList){
         this.rank = rank;
