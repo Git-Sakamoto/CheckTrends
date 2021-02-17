@@ -20,6 +20,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 public class GoogleTrendsFragment extends Fragment implements CustomDatePicker.CustomDatePickerListener {
+    Calendar calendar = Calendar.getInstance();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,7 +48,6 @@ public class GoogleTrendsFragment extends Fragment implements CustomDatePicker.C
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_past_trends:
-                Calendar calendar = Calendar.getInstance();
                 int year = calendar.get(Calendar.YEAR);
                 int month = calendar.get(Calendar.MONTH);
                 int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -72,6 +72,7 @@ public class GoogleTrendsFragment extends Fragment implements CustomDatePicker.C
 
     @Override
     public void onDateSet(int year, int month, int day) {
+        calendar.set(year, month - 1, day);
         new HttpRequest(this,String.format("%d%02d%02d",year,month,day)).execute();
     }
 }
