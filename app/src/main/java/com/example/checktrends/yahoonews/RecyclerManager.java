@@ -2,6 +2,8 @@ package com.example.checktrends.yahoonews;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.checktrends.R;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,8 +27,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -68,15 +71,57 @@ class RecyclerManager {
         progressBar.setVisibility(android.widget.ProgressBar.GONE);
 
         if(newsList.isEmpty()){
-            Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
+            Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_SHORT).show();
             return;
         }
 
         setRecyclerView();
     }
 
+    boolean netWorkCheck(Context context){
+        ConnectivityManager cm =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        if( info != null ){
+            return info.isConnected();
+        } else {
+            return false;
+        }
+    }
+
     void httpRequest(){
-        OkHttpClient client = new OkHttpClient();
+        Interceptor onlineInterceptor = new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                okhttp3.Response response = chain.proceed(chain.request());
+                int maxAge = 60; // read from cache for 60 seconds even if there is internet connection
+                return response.newBuilder()
+                        .header("Cache-Control", "public, max-age=" + maxAge)
+                        .build();
+            }
+        };
+
+        Interceptor offlineInterceptor= new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                Request request = chain.request();
+                if (netWorkCheck(context) == false) {
+                    int maxStale = 60 * 30;
+                    request = request.newBuilder()
+                            .header("Cache-Control", "public, only-if-cached, max-stale=" + maxStale)
+                            .build();
+                }
+                return chain.proceed(request);
+            }
+        };
+
+        final long cacheSize = 10 * 1024 * 1024;
+        Cache cache = new Cache(context.getCacheDir(), cacheSize);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(offlineInterceptor)
+                .addNetworkInterceptor(onlineInterceptor)
+                .cache(cache)
+                .build();
 
         okhttp3.Request request = new Request.Builder()
                 .url(URL)
@@ -89,12 +134,7 @@ class RecyclerManager {
                 addNewsList(response.body().string());
 
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onPostExecute();
-                    }
-                });
+                handler.post(() -> onPostExecute());
             }
 
             @Override
