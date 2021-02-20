@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,8 +25,12 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 class RecyclerManager {
     RecyclerView recyclerView;
@@ -48,29 +54,14 @@ class RecyclerManager {
         newsList = new ArrayList<>();
     }
 
-    private class AsyncRunnable implements Runnable {
-        Handler handler = new Handler(Looper.getMainLooper());
-        @Override
-        public void run() {
-            addNewsList();
+    void execute(){
+        onPreExecute();
 
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    onPostExecute();
-                }
-            });
-        }
+        httpRequest();
     }
 
     void onPreExecute() {
         progressBar.setVisibility(android.widget.ProgressBar.VISIBLE);
-    }
-
-    void execute(){
-        onPreExecute();
-        ExecutorService executorService  = Executors.newSingleThreadExecutor();
-        executorService.submit(new AsyncRunnable());
     }
 
     void onPostExecute() {
@@ -84,22 +75,48 @@ class RecyclerManager {
         setRecyclerView();
     }
 
-    void addNewsList(){
-        String title,url,jpgUrl;
-        try {
-            Document document = Jsoup.connect(URL).get();
-            Elements elements = document.select("a.newsFeed_item_link");
-            for (Element element : elements) {
-                url = element.attr("href");
-                title = element.select("div.newsFeed_item_title").text();
-                String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
-                jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
-                newsList.add(new News(title, url, jpgUrl));
+    void httpRequest(){
+        OkHttpClient client = new OkHttpClient();
+
+        okhttp3.Request request = new Request.Builder()
+                .url(URL)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                addNewsList(response.body().string());
+
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPostExecute();
+                    }
+                });
             }
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+
+            }
+        });
     }
+
+    void addNewsList(String response){
+        String title,url,jpgUrl;
+
+        Document document = Jsoup.parse(response);
+        Elements elements = document.select("a.newsFeed_item_link");
+        for (Element element : elements) {
+            url = element.attr("href");
+            title = element.select("div.newsFeed_item_title").text();
+            String thumbnail = element.select("div.newsFeed_item_thumbnail").html().replace("\n","");
+            jpgUrl = thumbnail.substring(thumbnail.indexOf("src=\"") + 5,thumbnail.indexOf("\"",thumbnail.indexOf("src=\"") + 5)).replace("&amp;", "&");
+            newsList.add(new News(title, url, jpgUrl));
+        }
+    };
 
     List<String> getAlreadyReadList(){
         List<String>result = new ArrayList<>();
