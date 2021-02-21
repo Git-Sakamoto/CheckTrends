@@ -93,7 +93,7 @@ class RecyclerManager {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
                 okhttp3.Response response = chain.proceed(chain.request());
-                int maxAge = 60; // read from cache for 60 seconds even if there is internet connection
+                int maxAge = 60 * 5;
                 return response.newBuilder()
                         .header("Cache-Control", "public, max-age=" + maxAge)
                         .build();
@@ -105,7 +105,7 @@ class RecyclerManager {
             public okhttp3.Response intercept(Chain chain) throws IOException {
                 Request request = chain.request();
                 if (netWorkCheck(context) == false) {
-                    int maxStale = 60 * 30;
+                    int maxStale = 60 * 60;
                     request = request.newBuilder()
                             .header("Cache-Control", "public, only-if-cached, max-stale=" + maxStale)
                             .build();

@@ -23,8 +23,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -46,7 +48,24 @@ class HttpRequest {
     }
 
     void execute(){
-        OkHttpClient client = new OkHttpClient();
+        Interceptor onlineInterceptor = new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                okhttp3.Response response = chain.proceed(chain.request());
+                int maxAge = 60 * 30;
+                return response.newBuilder()
+                        .header("Cache-Control", "public, max-age=" + maxAge)
+                        .build();
+            }
+        };
+
+        final long cacheSize = 10 * 1024 * 1024;
+        Cache cache = new Cache(fragment.getContext().getCacheDir(), cacheSize);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(onlineInterceptor)
+                .cache(cache)
+                .build();
 
         Request request = new Request.Builder()
                 .url(URL)
@@ -66,65 +85,22 @@ class HttpRequest {
                     if (dialog != null) {
                         dialog.dismiss();
                     }
-                    Toast.makeText(fragment.getActivity(),R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
+                    Toast.makeText(fragment.getActivity(),R.string.error_message_is_cannot_connect,Toast.LENGTH_SHORT).show();
                 });
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 try {
-                    List<Object> result = new ArrayList<>();
-
                     //JSONを取得した時に不要な文字列 )]}', が含まれているので、削除しないと正しく読み込むことができない
-                    //全データ
-                    JSONObject json = new JSONObject(response.body().string().replace(")]}',", ""));
+                    List<Object> result = getResult(response.body().string().replace(")]}',", ""));
 
-                    //日付や、日付に対するトレンドの配列が格納された配列　日付の降順
-                    JSONArray trendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
-
-                    //日付を指定してトレンドを表示する場合は、指定された日付1日分だけのトレンドを取得
-                    //日付を指定していない（初期表示）の場合は、1回のリクエストで取得できる全てのトレンドを表示
-                    for (int dateCount = 0; specifyDate ?  dateCount < 1 : dateCount < trendingSearchesDays.length(); dateCount++) {
-
-                        //日付の格納
-                        String date = trendingSearchesDays.getJSONObject(dateCount).getString("date");
-                        result.add(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
-
-                        //トレンドの配列
-                        JSONArray trendingSearches = trendingSearchesDays.getJSONObject(dateCount).getJSONArray("trendingSearches");
-
-                        //トレンド名をキーに、関連ニュースが格納されたMapを作成する
-                        for (int trendCount = 0; trendCount < trendingSearches.length(); trendCount++) {
-
-                            List<News> newsList = new ArrayList<>();
-
-                            //トレンドに対して関連ニュースが存在するか確認
-                            if (trendingSearches.getJSONObject(trendCount).isNull("articles") == false) {
-                                //トレンドに対する関連ニュースが格納された配列
-                                JSONArray articles = trendingSearches.getJSONObject(trendCount).getJSONArray("articles");
-
-                                newsList = getNewsList(articles);
-
-                            }
-
-                            result.add(new Trend(
-                                    (trendCount + 1) + "．",
-                                    trendingSearches.getJSONObject(trendCount).getJSONObject("title")
-                                            .getString("query"),
-                                    newsList)
-                            );
+                    handler.post(() -> {
+                        if (dialog != null) {
+                            dialog.dismiss();
                         }
-                    }
 
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (dialog != null) {
-                                dialog.dismiss();
-                            }
-
-                            setRecyclerView(result);
-                        }
+                        setRecyclerView(result);
                     });
 
                 } catch (Exception e) {
@@ -134,7 +110,54 @@ class HttpRequest {
         });
     }
 
+    List<Object>getResult(String response){
+        List<Object> result = new ArrayList<>();
+        try {
+            //全データ
+            JSONObject json = new JSONObject(response);
 
+            //日付や、日付に対するトレンドの配列が格納された配列　日付の降順
+            JSONArray trendingSearchesDays = json.getJSONObject("default").getJSONArray("trendingSearchesDays");
+
+            //日付を指定してトレンドを表示する場合は、指定された日付1日分だけのトレンドを取得
+            //日付を指定していない（初期表示）の場合は、1回のリクエストで取得できる全てのトレンドを表示
+            for (int dateCount = 0; specifyDate ?  dateCount < 1 : dateCount < trendingSearchesDays.length(); dateCount++) {
+
+                //日付の格納
+                String date = trendingSearchesDays.getJSONObject(dateCount).getString("date");
+                result.add(date.substring(0, 4) + "年" + date.substring(4, 6) + "月" + date.substring(6, 8) + "日");
+
+                //トレンドの配列
+                JSONArray trendingSearches = trendingSearchesDays.getJSONObject(dateCount).getJSONArray("trendingSearches");
+
+                //トレンド名をキーに、関連ニュースが格納されたMapを作成する
+                for (int trendCount = 0; trendCount < trendingSearches.length(); trendCount++) {
+
+                    List<News> newsList = new ArrayList<>();
+
+                    //トレンドに対して関連ニュースが存在するか確認
+                    if (trendingSearches.getJSONObject(trendCount).isNull("articles") == false) {
+                        //トレンドに対する関連ニュースが格納された配列
+                        JSONArray articles = trendingSearches.getJSONObject(trendCount).getJSONArray("articles");
+
+                        newsList = getNewsList(articles);
+
+                    }
+
+                    result.add(new Trend(
+                            (trendCount + 1) + "．",
+                            trendingSearches.getJSONObject(trendCount).getJSONObject("title")
+                                    .getString("query"),
+                            newsList)
+                    );
+                }
+            }
+        } catch (Exception e) {
+            Log.e("error", e.getMessage());
+        }finally {
+            return result;
+        }
+    }
 
     List<News> getNewsList(JSONArray articles) throws JSONException {
         List<News> newsList = new ArrayList<>();
