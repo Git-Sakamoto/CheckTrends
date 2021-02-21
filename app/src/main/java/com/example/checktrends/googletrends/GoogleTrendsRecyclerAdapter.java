@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.checktrends.R;
@@ -89,6 +90,7 @@ class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
         }else{
             ((TrendViewHolder) holder).textRank.setText(((Trend)object).getRank());
             ((TrendViewHolder) holder).textTrendTitle.setText(((Trend)object).getTrendTitle());
+            ((TrendViewHolder) holder).textNumberNews.setText(((Trend)object).getNewsList().size() + "件の");
 
             ((TrendViewHolder) holder).recyclerView.setAdapter(new NewsRecyclerAdapter(context,((Trend)object).getNewsList()));
 
@@ -127,7 +129,7 @@ class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
     }
 
     public static class TrendViewHolder extends RecyclerView.ViewHolder {
-        TextView textRank,textTrendTitle;
+        TextView textRank,textTrendTitle,textNumberNews;
         ImageButton buttonSearch,buttonExpansion;
         LinearLayout layoutExpansion;
         RecyclerView recyclerView;
@@ -136,6 +138,7 @@ class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
             super(view);
             textRank = view.findViewById(R.id.text_rank);
             textTrendTitle = view.findViewById(R.id.text_title);
+            textNumberNews = view.findViewById(R.id.text_number_news);
             buttonSearch = view.findViewById(R.id.button_search);
             buttonExpansion = view.findViewById(R.id.button_expansion);
             layoutExpansion = view.findViewById(R.id.layout_expansion);
@@ -144,6 +147,9 @@ class GoogleTrendsRecyclerAdapter extends RecyclerView.Adapter {
             LinearLayoutManager linearLayoutManager =
                     new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false);
             recyclerView.setLayoutManager(linearLayoutManager);
+
+            LinearSnapHelper snapHelper = new LinearSnapHelper();
+            snapHelper.attachToRecyclerView(recyclerView);
         }
     }
 
