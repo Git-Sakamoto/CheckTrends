@@ -102,30 +102,14 @@ public class HttpRequest {
 
         if(result.isEmpty()){
             Toast.makeText(context,R.string.error_message_is_cannot_connect,Toast.LENGTH_LONG).show();
+            return;
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         ResultRecyclerAdapter resultListAdapter = new ResultRecyclerAdapter(context, result, new RecyclerViewOnClick() {
             @Override
             public void onClick(Object object) {
-                Uri uri;
-                Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-                if(((String)object).startsWith("#")){
-                    uri = Uri.parse("https://twitter.com/search?q=%23"+((String)object).substring(1));
-                }else{
-                    uri = Uri.parse("https://twitter.com/search?q="+ object);
-                }
-                intent.setData(uri);
-                intent.setPackage("com.twitter.android");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                try {
-                    context.startActivity(intent);
-                }catch (ActivityNotFoundException exception){
-                    CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                    CustomTabsIntent customTabsIntent = builder.build();
-                    customTabsIntent.launchUrl(fragment.getActivity(), uri);
-                }
+                searchKeyword(object);
             }
 
             @Override
@@ -136,6 +120,27 @@ public class HttpRequest {
         recyclerView.setAdapter(resultListAdapter);
     }
 
+    void searchKeyword(Object object){
+        Uri uri;
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+        if(((String)object).startsWith("#")){
+            uri = Uri.parse("https://twitter.com/search?q=%23"+((String)object).substring(1));
+        }else{
+            uri = Uri.parse("https://twitter.com/search?q="+ object);
+        }
+        intent.setData(uri);
+        intent.setPackage("com.twitter.android");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            context.startActivity(intent);
+        }catch (ActivityNotFoundException exception){
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(fragment.getActivity(), uri);
+        }
+    }
+
     public void openWebViewDialog(String title){
         //ネットワークに繋がっていない場合はタイムアウトするまでtwitter.search(query)が続行されるため、事前にネットワークに繋がるか確認する
         if(netWorkCheck(context) == false) {
@@ -144,60 +149,24 @@ public class HttpRequest {
         }
 
         new Thread(new Runnable() {
-            Status displayTweet = null;
+            Status displayTweet;
             @Override
             public void run() {
                 try {
                     handler.post(() -> progressBar.setVisibility(ProgressBar.VISIBLE));
 
-                    Query query = new Query();
-                    query.setQuery(title + SEARCH_FILTER);
-                    query.resultType(Query.POPULAR);
-                    query.setCount(100);
-                    query.lang("ja");
-
-                    //人気のツイートを検索
-                    QueryResult result;
-                    result = twitter.search(query);
-                    for (Status tweet : result.getTweets()) {
-                        if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
-                            displayTweet = tweet;
-                        }
-                    }
-
-                    /*
-                        人気のツイートが見つからなかった場合に、ツイートをSEARCH_FILTERの条件で検索する
-                        最大でMAX_PAGE * 100件
-                     */
-                    if (displayTweet == null) {
-                        query.resultType(Query.MIXED);
-                        for (int searchPage = 1; searchPage <= MAX_PAGE; searchPage++) {
-                            System.out.println("現在のページ" + searchPage);
-                            result = twitter.search(query);
-                            for (Status tweet : result.getTweets()) {
-                                if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
-                                    displayTweet = tweet;
-                                }
-                            }
-                            query = result.nextQuery();
-                            if (query == null) break;
-                        }
-                    }
+                    displayTweet = getDisplayTweet(title);
 
                     //ツイートを埋め込んだダイアログを表示
                     if (displayTweet != null) {
-                        OEmbedRequest oEmbedRequest = new OEmbedRequest(displayTweet.getId(), null);
-                        oEmbedRequest.setHideMedia(false);
-                        OEmbed oEmbed = twitter.getOEmbed(oEmbedRequest);
-
-                        WebViewDialogFragment dialog = new WebViewDialogFragment(oEmbed.getHtml());
-                        dialog.show(fragment.getActivity().getSupportFragmentManager(), null);
+                        openWebViewDialog(displayTweet);
                     }
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 } finally {
                     handler.post(() -> {
                         progressBar.setVisibility(ProgressBar.GONE);
+
                         if (displayTweet == null) {
                             Toast.makeText(context, R.string.error_message_is_cannot_connect, Toast.LENGTH_LONG).show();
                         }
@@ -205,6 +174,53 @@ public class HttpRequest {
                 }
             }
         }).start();
+    }
+
+    private Status getDisplayTweet(String title) throws TwitterException {
+        Status displayTweet = null;
+
+        Query query = new Query();
+        query.setQuery(title + SEARCH_FILTER);
+        query.resultType(Query.POPULAR);
+        query.setCount(100);
+        query.lang("ja");
+
+        //人気のツイートを検索
+        QueryResult result;
+        result = twitter.search(query);
+        for (Status tweet : result.getTweets()) {
+            if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
+                displayTweet = tweet;
+            }
+        }
+
+        //人気のツイートが見つからなかった場合に、ツイートをSEARCH_FILTERの条件で検索する
+        //最大でMAX_PAGE * 100件
+        if (displayTweet == null) {
+            query.resultType(Query.MIXED);
+            for (int searchPage = 1; searchPage <= MAX_PAGE; searchPage++) {
+                System.out.println("現在のページ" + searchPage);
+                result = twitter.search(query);
+                for (Status tweet : result.getTweets()) {
+                    if (displayTweet == null || displayTweet.getRetweetCount() < tweet.getRetweetCount()) {
+                        displayTweet = tweet;
+                    }
+                }
+                query = result.nextQuery();
+                if (query == null) break;
+            }
+        }
+
+        return displayTweet;
+    }
+
+    private void openWebViewDialog(Status displayTweet) throws TwitterException {
+        OEmbedRequest oEmbedRequest = new OEmbedRequest(displayTweet.getId(), null);
+        oEmbedRequest.setHideMedia(false);
+        OEmbed oEmbed = twitter.getOEmbed(oEmbedRequest);
+
+        WebViewDialogFragment dialog = new WebViewDialogFragment(oEmbed.getHtml());
+        dialog.show(fragment.getActivity().getSupportFragmentManager(), null);
     }
 
     boolean netWorkCheck(Context context){

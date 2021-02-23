@@ -21,6 +21,7 @@
                 android:id="@+id/image_news_photo"
                 android:layout_width="60sp"
                 android:layout_height="60sp"
+                android:layout_gravity="center_vertical"
                 android:adjustViewBounds="true"/>
 
             <LinearLayout
