@@ -1,4 +1,4 @@
-package com.example.checktrends;
+package com.example.checktrends.twitter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.checktrends.R;
 
 import java.util.List;
 

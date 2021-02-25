@@ -1,4 +1,4 @@
-package com.example.checktrends;
+package com.example.checktrends.twitter;
 
 public class News {
     private String title;

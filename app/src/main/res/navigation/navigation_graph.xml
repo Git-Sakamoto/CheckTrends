@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_topFragment_to_bookMarkFragment"
             app:destination="@id/bookMarkFragment" />
+        <action
+            android:id="@+id/action_topFragment_to_wikipediaFragment"
+            app:destination="@id/wikipediaFragment" />
     </fragment>
 
     <fragment
@@ -51,5 +54,10 @@
         android:name="com.example.checktrends.yahoonews.YahooNewsBookmarkFragment"
         android:label="@string/yahoo_news_bookmark_title"
         tools:layout="@layout/fragment_yahoo_news_bookmark" />
+    <fragment
+        android:id="@+id/wikipediaFragment"
+        android:name="com.example.checktrends.wikipedia.WikipediaFragment"
+        android:label="@string/wikipedia_title"
+        tools:layout="@layout/fragment_wikipedia" />
 
 </navigation>

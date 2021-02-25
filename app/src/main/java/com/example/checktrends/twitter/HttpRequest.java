@@ -16,17 +16,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.checktrends.RecyclerViewOnClick;
 import com.example.checktrends.R;
-import com.example.checktrends.ResultRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 import twitter4j.OEmbed;
 import twitter4j.OEmbedRequest;
