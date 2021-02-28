@@ -15,7 +15,6 @@ import com.example.checktrends.R;
 import com.google.android.material.tabs.TabLayout;
 
 public class WikipediaFragment extends Fragment {
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -24,9 +23,18 @@ public class WikipediaFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        PagerAdapter pagerAdapter = new PagerAdapter(getChildFragmentManager());
+        new HttpRequest(getActivity()){
+            @Override
+            void loadingComplete(WikipediaContent content) {
+                setPagerAdapter(view,content);
+            }
+        }.execute();
+    }
+
+    void setPagerAdapter(View view,WikipediaContent content){
+        PagerAdapter pagerAdapter = new PagerAdapter(getChildFragmentManager(),content);
         ViewPager viewPager = view.findViewById(R.id.viewPager);
-        viewPager.setOffscreenPageLimit(2);
+        viewPager.setOffscreenPageLimit(3);
         viewPager.setAdapter(pagerAdapter);
 
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);

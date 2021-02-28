@@ -5,10 +5,13 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 public class PagerAdapter extends FragmentPagerAdapter {
-    private CharSequence[] tabTitles = {"できごと", "誕生日"};
+    WikipediaContent content;
 
-    public PagerAdapter(FragmentManager fm) {
+    private CharSequence[] tabTitles = {"できごと", "誕生日","記念日・年中行事"};
+
+    public PagerAdapter(FragmentManager fm,WikipediaContent content) {
         super(fm);
+        this.content = content;
     }
 
     @Override
@@ -21,13 +24,16 @@ public class PagerAdapter extends FragmentPagerAdapter {
         Fragment fragment = null;
         switch (position) {
             case 0:
-                fragment = new WikipediaContentsFragment();
+                fragment = new WikipediaContentFragment(content.getEvents());
                 break;
             case 1:
-                fragment = new WikipediaContentsFragment();
+                fragment = new WikipediaContentFragment(content.getBirthdays());
+                break;
+            case 2:
+                fragment = new WikipediaContentFragment(content.getAnniversaries());
                 break;
             default:
-                fragment = new WikipediaContentsFragment();
+                fragment = new WikipediaContentFragment(content.getEvents());
                 break;
         }
         return fragment;
