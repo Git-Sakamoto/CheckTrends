@@ -64,7 +64,6 @@ public class WikipediaFragment extends Fragment implements CustomDatePicker.Cust
                 CustomDatePicker customDatePicker = new CustomDatePicker(calendar,null,null);
                 customDatePicker.setTargetFragment(WikipediaFragment.this,0);
                 customDatePicker.show(getParentFragmentManager(),"dialog");
-
                 break;
         }
 
@@ -74,6 +73,7 @@ public class WikipediaFragment extends Fragment implements CustomDatePicker.Cust
     @Override
     public void onDateSet(int year, int month, int day) {
         calendar.set(year, month - 1, day);
+        System.out.println(month+"月"+day+"日");
         new HttpRequest(getActivity(),month+"月"+day+"日"){
             @Override
             void loadingComplete(WikipediaContent content) {

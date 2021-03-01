@@ -133,8 +133,8 @@ public class HttpRequest {
         //結果は改行コードで区切る形で配列に格納しているが、記念日・年中行事名「～の日」と、それに対する説明文の間には、改行コードが挿入されている
         //結果的に記念日・年中行事名と説明文が別々に格納されてしまうため、文字列の結合作業を要する
         List<String>linking = new ArrayList<>();
-        for(int i = 0; i < anniversaries.length; i++){
-            if(anniversaries[i + 1].matches(":.*")){//ここなおす
+        for(int i = 0; i < anniversaries.length-1;i++){
+            if(anniversaries[i + 1].matches(":.*")){
                 linking.add(anniversaries[i] + anniversaries[i + 1]);
                 i++;
             }else if(!anniversaries[i].equals("")){
@@ -149,7 +149,8 @@ public class HttpRequest {
         Map<String, String> countries = getCountries();
         for(int i = 0; i < anniversaries.length; i++){
             String anniversary = anniversaries[i];
-            String iso3 = anniversary.substring(anniversary.indexOf("（") + 1,anniversary.indexOf("）"));
+            //String iso3 = anniversary.substring(anniversary.indexOf("（") + 1,anniversary.indexOf("）"));//ここなおす
+            String iso3 = "テスト";
             try{
                 String countryName = countries.get(iso3);
                 anniversaries[i] = anniversary.replace(iso3,countryName);
