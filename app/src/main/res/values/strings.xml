@@ -28,6 +28,7 @@
     <string name="delete">削除</string>
     <string name="bookmark">あとで読む</string>
     <string name="past_trends">過去のトレンドを表示</string>
+    <string name="specifying_date">日付を指定して表示</string>
 
     <!-- メッセージ -->
     <string name="register_complete">登録が完了しました</string>

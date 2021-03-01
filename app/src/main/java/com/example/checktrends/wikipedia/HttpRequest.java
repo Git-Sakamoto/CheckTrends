@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -29,10 +30,11 @@ public class HttpRequest {
     private Context context;
     private Handler handler;
     private ProgressDialog dialog;
-    private String URL = "https://ja.wikipedia.org/w/api.php?format=json&utf8&action=query&prop=revisions&rvprop=content&titles=2月28日";
+    private String URL = "https://ja.wikipedia.org/w/api.php?format=json&utf8&action=query&prop=revisions&rvprop=content&titles=";
 
-    HttpRequest(Context context){
+    HttpRequest(Context context,String date){
         this.context = context;
+        URL = URL + date;
     }
 
     void execute(){
@@ -53,6 +55,7 @@ public class HttpRequest {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
                 handler.post(() -> {
                     if (dialog != null) {
                         dialog.dismiss();
@@ -94,45 +97,44 @@ public class HttpRequest {
     }
 
     String[] getEvents(String content){
-        return content.substring(content.indexOf("*" , content.indexOf("== できごと ==")),content.indexOf("== 誕生日 =="))
-                .replaceAll("\\[[^\\]]*\\|","")
-                .replaceAll("<.*>","")
-                .replaceAll("\\{.*\\}","")
-                .replace("*","")
-                .replace("[", "")
-                .replace("]", "")
-                .split("\n");
+        String[]events = replaceContent(content,"== できごと ==");
+
+        //不要な改行コードを削除
+        List<String>trim = new ArrayList<>();
+        for(int i = 0; i < events.length; i++){
+            if(!events[i].equals("")){
+                trim.add(events[i]);
+            }
+        }
+        Collections.reverse(trim);
+
+        return trim.toArray(new String[trim.size()]);
     }
 
     String[] getBirthdays(String content){
-        return content.substring(content.indexOf("*" , content.indexOf("== 誕生日 ==")),content.indexOf("== 忌日 =="))
-                .replaceAll("\\[[^\\]]*\\|","")
-                .replaceAll("<.*>","")
-                .replaceAll("\\{.*\\}","")
-                .replace("*","")
-                .replace("[", "")
-                .replace("]", "")
-                .split("\n");
+        String[] birthdays = replaceContent(content,"== 誕生日 ==");
+
+        //不要な改行コードを削除
+        List<String>trim = new ArrayList<>();
+        for(int i = 0; i < birthdays.length; i++){
+            if(!birthdays[i].equals("")){
+                trim.add(birthdays[i]);
+            }
+        }
+        Collections.reverse(trim);
+
+        return trim.toArray(new String[trim.size()]);
     }
 
     String[] getAnniversaries(String content){
-        String[] anniversaries;
-        anniversaries = content.substring(content.indexOf("*" , content.indexOf("== 記念日・年中行事 ==")),content.indexOf("== フィクションのできごと =="))
-                .replaceAll("\\[[^\\]]*\\|","")
-                .replaceAll("<.*>","")
-                .replaceAll("\\{\\{","")
-                .replaceAll("\\}\\}","")
-                .replace("*","")
-                .replace("[", "")
-                .replace("]", "")
-                .split("\n");
+        String[] anniversaries = replaceContent(content,"== 記念日・年中行事 ==");
 
         //内容の結合作業
         //結果は改行コードで区切る形で配列に格納しているが、記念日・年中行事名「～の日」と、それに対する説明文の間には、改行コードが挿入されている
         //結果的に記念日・年中行事名と説明文が別々に格納されてしまうため、文字列の結合作業を要する
         List<String>linking = new ArrayList<>();
         for(int i = 0; i < anniversaries.length; i++){
-            if(anniversaries[i + 1].matches(":.*")){
+            if(anniversaries[i + 1].matches(":.*")){//ここなおす
                 linking.add(anniversaries[i] + anniversaries[i + 1]);
                 i++;
             }else if(!anniversaries[i].equals("")){
@@ -159,9 +161,28 @@ public class HttpRequest {
         return anniversaries;
     }
 
+    //onResponse内の変数responseで一括した処理が理想だけど、エラーが出るので個別対応で保留
+    String[] replaceContent(String content,String title){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(content);
+        stringBuilder.delete(0,content.indexOf("*" , content.indexOf(title)));
+        String str = stringBuilder.toString();
+        String[]array = str.substring(0,str.indexOf("=="))
+                .replaceAll("\\[[^\\]]*\\|","")
+                .replaceAll("\\{\\{.*?\\|","")
+                .replaceAll("\\|.*\\|.+?\\}\\}","")
+                .replaceAll("<.*>","")
+                .replaceAll("\\{\\{","")
+                .replaceAll("\\}\\}","")
+                .replace("*","")
+                .replace("[", "")
+                .replace("]", "")
+                .split("\n");
+        return array;
+    }
+
     private Map<String, String> getCountries() {
         Map<String, String> countries = new HashMap<>();
-
         String[] isoCountries = Locale.getISOCountries();
         for (String iso2 : isoCountries) {
             Locale locale = new Locale("jp", iso2);
@@ -172,6 +193,7 @@ public class HttpRequest {
                 countries.put(iso3, name);
             }
         }
+        countries.put("World","世界");
         return countries;
     }
 

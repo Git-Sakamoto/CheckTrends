@@ -8,13 +8,30 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.checktrends.CustomDatePicker;
 import com.example.checktrends.R;
 import com.google.android.material.tabs.TabLayout;
 
-public class WikipediaFragment extends Fragment {
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+public class WikipediaFragment extends Fragment implements CustomDatePicker.CustomDatePickerListener{
+    Calendar calendar = Calendar.getInstance();
+    View view;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -23,7 +40,41 @@ public class WikipediaFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        new HttpRequest(getActivity()){
+        this.view = view;
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("M月d日");
+        String date = simpleDateFormat.format(new Date());
+        new HttpRequest(getActivity(),date){
+            @Override
+            void loadingComplete(WikipediaContent content) {
+                setPagerAdapter(view,content);
+            }
+        }.execute();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_wikipedia,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_past_trends:
+                CustomDatePicker customDatePicker = new CustomDatePicker(calendar,null,null);
+                customDatePicker.setTargetFragment(WikipediaFragment.this,0);
+                customDatePicker.show(getParentFragmentManager(),"dialog");
+
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDateSet(int year, int month, int day) {
+        calendar.set(year, month - 1, day);
+        new HttpRequest(getActivity(),month+"月"+day+"日"){
             @Override
             void loadingComplete(WikipediaContent content) {
                 setPagerAdapter(view,content);
