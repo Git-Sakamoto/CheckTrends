@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -149,8 +151,18 @@ public class HttpRequest {
         Map<String, String> countries = getCountries();
         for(int i = 0; i < anniversaries.length; i++){
             String anniversary = anniversaries[i];
-            //String iso3 = anniversary.substring(anniversary.indexOf("（") + 1,anniversary.indexOf("）"));//ここなおす
-            String iso3 = "テスト";
+
+            //ISO639-2コードを取得
+            String regex = "（([A-Za-z]*).*）";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(anniversary);
+            String iso3;
+            if (matcher.find()){
+                iso3 = matcher.group(1);
+            }else{
+                iso3 = "不明";
+            }
+
             try{
                 String countryName = countries.get(iso3);
                 anniversaries[i] = anniversary.replace(iso3,countryName);
