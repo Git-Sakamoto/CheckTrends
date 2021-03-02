@@ -131,11 +131,14 @@ public class HttpRequest {
     String[] getAnniversaries(String content){
         String[] anniversaries = replaceContent(content,"== 記念日・年中行事 ==");
 
-        //内容の結合作業
+        //内容の結合作業、不要な改行コードを削除
         //結果は改行コードで区切る形で配列に格納しているが、記念日・年中行事名「～の日」と、それに対する説明文の間には、改行コードが挿入されている
         //結果的に記念日・年中行事名と説明文が別々に格納されてしまうため、文字列の結合作業を要する
         List<String>linking = new ArrayList<>();
         for(int i = 0; i < anniversaries.length-1;i++){
+            if(anniversaries[i].matches("Clear.*")){
+                continue;
+            }
             if(anniversaries[i + 1].matches(":.*")){
                 linking.add(anniversaries[i] + anniversaries[i + 1]);
                 i++;
@@ -148,24 +151,21 @@ public class HttpRequest {
         //ISO639-2コードを国名として表示する
         //Wikipediaのページに記載されている記念日・年中行事名「～の日（）」の（）内は、国名が表示されている
         //しかしJSONでデータを取得するとISO639-2コード「3桁の英字　例：日本 = JPN」になっており、日本語の国名で表記するために変換処理を行う
+        //DDR（東ドイツ）、SUN（ソビエト連邦）のような旧国名・地域名には対応しない
         Map<String, String> countries = getCountries();
         for(int i = 0; i < anniversaries.length; i++){
-            String anniversary = anniversaries[i];
-
             //ISO639-2コードを取得
-            String regex = "（([A-Za-z]*).*）";
+            String regex = "[A-Za-z]{3,}";
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(anniversary);
-            String iso3;
-            if (matcher.find()){
-                iso3 = matcher.group(1);
-            }else{
-                iso3 = "不明";
-            }
-
+            Matcher matcher = pattern.matcher(anniversaries[i]);
             try{
-                String countryName = countries.get(iso3);
-                anniversaries[i] = anniversary.replace(iso3,countryName);
+                while(matcher.find()){
+                    System.out.println(matcher.group());
+                    String iso3 = matcher.group();
+                    System.out.println(iso3);
+                    String countryName = countries.get(iso3);
+                    anniversaries[i] = anniversaries[i].replace(iso3,countryName);
+                }
             }catch (NullPointerException e){
                 //～の日（国名）の（）内がISO639-2コードではない
                 e.printStackTrace();
@@ -190,6 +190,7 @@ public class HttpRequest {
                 .replace("*","")
                 .replace("[", "")
                 .replace("]", "")
+                .replace(" (en) ", "")
                 .split("\n");
         return array;
     }

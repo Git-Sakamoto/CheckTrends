@@ -13,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.checktrends.CustomDatePicker;
 import com.example.checktrends.R;
@@ -25,6 +26,7 @@ import java.util.Date;
 public class WikipediaFragment extends Fragment implements CustomDatePicker.CustomDatePickerListener{
     Calendar calendar = Calendar.getInstance();
     View view;
+    TextView textDate;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,6 +46,10 @@ public class WikipediaFragment extends Fragment implements CustomDatePicker.Cust
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("M月d日");
         String date = simpleDateFormat.format(new Date());
+
+        textDate = view.findViewById(R.id.text_date);
+        textDate.setText(date);
+
         new HttpRequest(getActivity(),date){
             @Override
             void loadingComplete(WikipediaContent content) {
@@ -73,8 +79,9 @@ public class WikipediaFragment extends Fragment implements CustomDatePicker.Cust
     @Override
     public void onDateSet(int year, int month, int day) {
         calendar.set(year, month - 1, day);
-        System.out.println(month+"月"+day+"日");
-        new HttpRequest(getActivity(),month+"月"+day+"日"){
+        String date = month+"月"+day+"日";
+        textDate.setText(date);
+        new HttpRequest(getActivity(),date){
             @Override
             void loadingComplete(WikipediaContent content) {
                 setPagerAdapter(view,content);
